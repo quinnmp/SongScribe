@@ -1,0 +1,109 @@
+const axios = require("axios");
+const qs = require("qs");
+const bodyParser = require("body-parser");
+const express = require("express");
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+require("dotenv").config();
+
+const clientID = process.env.SPOTIFY_API_ID;
+const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
+    "base64"
+);
+
+let accessToken = "";
+
+async function getAuth(code, state) {
+    try {
+        const data = qs.stringify({
+            grant_type: "authorization_code",
+            code: code,
+            redirect_uri: "http://localhost:5000/callback",
+        });
+        const tokenURL = "https://accounts.spotify.com/api/token?" + data;
+
+        const response = await axios.post(
+            tokenURL,
+            {},
+            {
+                headers: {
+                    Authorization: `Basic ${authToken}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            }
+        );
+        return response.data.access_token;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function getPlayerState() {
+    const apiURL = `https://api.spotify.com/v1/me/player`;
+
+    try {
+        console.log("Querying API...");
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        console.log(response.data);
+        return response.data;
+    } catch (error) {
+        // console.log(error);
+    }
+}
+
+function makeID(length) {
+    let result = "";
+    const characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+        result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+        );
+        counter += 1;
+    }
+    return result;
+}
+
+app.get("/login", function (req, res) {
+    var state = makeID(16);
+    var scope = "user-read-playback-state";
+
+    res.redirect(
+        "https://accounts.spotify.com/authorize?" +
+            qs.stringify({
+                response_type: "code",
+                client_id: clientID,
+                scope: scope,
+                redirect_uri: "http://localhost:5000/callback",
+                state: state,
+            })
+    );
+});
+
+app.get("/callback", async function (req, res) {
+    console.log("CALLBACK");
+    accessToken = await getAuth(req.query.code, req.query.state);
+    res.redirect("/api");
+});
+
+app.get("/api", (req, res) => {
+    console.log("get request made");
+    // if (!accessToken) {
+    //     res.redirect("/login");
+    // }
+    // console.log(accessToken);
+    // getPlayerState();
+    res.send("Good");
+    // res.send(getPlayerState());
+});
+
+app.listen(5000, () => {
+    console.log("Server started on port 5000");
+});
