@@ -3,7 +3,9 @@ const qs = require("qs");
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
+const cors = require("cors");
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({ origin: "http://127.0.0.1:5173" }));
 require("dotenv").config();
 
 const clientID = process.env.SPOTIFY_API_ID;
@@ -13,6 +15,8 @@ const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
 );
 
 let accessToken = "";
+
+let playerData = undefined;
 
 async function getAuth(code, state) {
     try {
@@ -49,10 +53,10 @@ async function getPlayerState() {
                 Authorization: `Bearer ${accessToken}`,
             },
         });
-        console.log(response.data);
-        return response.data;
+        playerData = response.data;
+        console.log(response.data.progress_ms);
     } catch (error) {
-        // console.log(error);
+        console.log(error);
     }
 }
 
@@ -95,13 +99,11 @@ app.get("/callback", async function (req, res) {
 
 app.get("/api", (req, res) => {
     console.log("get request made");
-    // if (!accessToken) {
-    //     res.redirect("/login");
-    // }
-    // console.log(accessToken);
-    // getPlayerState();
-    res.send("Good");
-    // res.send(getPlayerState());
+    if (!accessToken) {
+        res.redirect("/login");
+    }
+    getPlayerState();
+    res.send(playerData);
 });
 
 app.listen(5000, () => {
