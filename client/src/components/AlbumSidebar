@@ -1,0 +1,3 @@
+function AlbumSidebar() {}
+
+export default AlbumSidebar;

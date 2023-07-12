@@ -1,0 +1,76 @@
+body {
+    background: #191a19;
+}
+
+h1,
+h2,
+h3 {
+    color: #d8e9a8;
+}
+
+h1,
+h2 {
+    text-align: center;
+}
+
+h3 {
+    font-size: larger;
+}
+
+label {
+    color: #d8e9a8;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: #1e5128;
+}
+
+.form-range::-webkit-slider-runnable-track {
+    background: #d8e9a8;
+}
+
+.add-note-button {
+    background-color: #d8e9a8;
+    color: #1e5128;
+    padding: 0px;
+    border-width: 5px;
+    border-color: #1e5128;
+}
+
+.modal-content {
+    background-color: #191a19;
+}
+
+.close-btn {
+    color: #d8e9a8;
+    border-width: 2px;
+    border-color: #d8e9a8;
+}
+
+.close-btn:hover {
+    color: #1e5128;
+    border-width: 2px;
+    border-color: #1e5128;
+}
+
+.btn-primary {
+    color: #1e5128;
+    background-color: #d8e9a8;
+    border-width: 2px;
+    border-color: #1e5128;
+}
+
+.btn-primary:hover {
+    background-color: #191a19;
+    color: #1e5128;
+    border-color: #1e5128;
+}
+
+.modal-header,
+.modal-footer {
+    border: 0px;
+}
+
+#add-note-spacer {
+    height: 64px;
+}

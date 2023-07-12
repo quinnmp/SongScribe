@@ -47,14 +47,12 @@ async function getPlayerState() {
     const apiURL = `https://api.spotify.com/v1/me/player`;
 
     try {
-        console.log("Querying API...");
         const response = await axios.get(apiURL, {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
         });
         playerData = response.data;
-        console.log(response.data.progress_ms);
     } catch (error) {
         console.log(error);
     }
@@ -92,14 +90,12 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/callback", async function (req, res) {
-    console.log("CALLBACK");
     accessToken = await getAuth(req.query.code, req.query.state);
     res.redirect("/api");
 });
 
 app.get("/api", (req, res) => {
-    console.log("get request made");
-    if (!accessToken) {
+    if (accessToken == "") {
         res.redirect("/login");
     }
     getPlayerState();
