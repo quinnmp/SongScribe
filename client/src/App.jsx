@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { AlbumSidebar } from "./components/AlbumSidebar";
+import AlbumSidebar from "./components/AlbumSidebar.jsx";
+import NoteModal from "./components/NoteModal.jsx";
 
 function App() {
     const [playbackProgress, setPlaybackProgress] = useState(-1);
@@ -14,10 +15,16 @@ function App() {
     const [albumTitle, setAlbumTitle] = useState("");
     const [artist, setArtist] = useState("");
     const [releaseDate, setReleaseDate] = useState("");
+    const [notes, setNotes] = useState([]);
 
     useEffect(() => {
         function getPlaybackState() {
-            fetch("http://localhost:5000/api")
+            const requestOptions = {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                // body: JSON.stringify({ title: "Fetch PUT Request Example" }),
+            };
+            fetch("http://localhost:5000/api", requestOptions)
                 .then((response) => {
                     return response.json();
                 })
@@ -26,10 +33,10 @@ function App() {
                     setPlaybackProgressString(
                         Math.floor(data.progress_ms / 1000 / 60) +
                             ":" +
-                            (Math.round((data.progress_ms / 1000) % 60) < 10
+                            (Math.floor((data.progress_ms / 1000) % 60) < 10
                                 ? "0"
                                 : "") +
-                            Math.round((data.progress_ms / 1000) % 60)
+                            Math.floor((data.progress_ms / 1000) % 60)
                     );
                     setTrackLength(data.item.duration_ms);
                     setPlaybackPercent(
@@ -51,8 +58,64 @@ function App() {
         };
     }, []);
 
+    async function setUserPlaybackProgress() {
+        const requestOptions = {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            // body: JSON.stringify({ title: "Fetch PUT Request Example" }),
+        };
+        await fetch("http://localhost:5000/api", requestOptions)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => console.log(data));
+    }
+
     function setNoteTimeStamp() {
         setTempTimeStamp(playbackProgressString);
+    }
+
+    function timestampToPlaybackPercent(timestamp) {
+        const minutes = timestamp.split(":")[0];
+        const seconds = timestamp.split(":")[1];
+        return (
+            ((minutes * 1000 * 60 + seconds * 1000) / trackLength) * 95 + "%"
+        );
+    }
+
+    $(document).ready(function () {
+        // const tooltipTriggerList = document.querySelectorAll(
+        //     '[data-bs-toggle="tooltip"]'
+        // );
+        // const tooltipList = [...tooltipTriggerList].map(
+        //     (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+        // );
+        // $('[data-bs-toggle="tooltip"]').tooltip({
+        //     trigger: "hover",
+        // });
+        $("#noteInterface").on("shown.bs.modal", function () {
+            $("#noteInput").focus();
+        });
+        $(".save-note").click(async function () {
+            let noteData = $(".note-form").serializeArray();
+            await setNotes([
+                ...notes,
+                new Note(
+                    noteData[0].value,
+                    noteData[1].value,
+                    noteData[2].value
+                ),
+            ]);
+            $("#noteInput").val("");
+        });
+    });
+
+    class Note {
+        constructor(timestamp, length, note) {
+            this.timestamp = timestamp;
+            this.length = length;
+            this.note = note;
+        }
     }
 
     return (
@@ -60,20 +123,21 @@ function App() {
             <div className="container">
                 <div className="row mt-5">
                     <div className="col-3">
-                        <img
-                            className="img-fluid m-2"
-                            src={albumCoverURL}
-                            alt="album cover"
-                            id="album-cover"
+                        <AlbumSidebar
+                            albumCoverURL={albumCoverURL}
+                            trackNumber={trackNumber}
+                            totalTracks={totalTracks}
+                            songTitle={songTitle}
+                            albumTitle={albumTitle}
+                            artist={artist}
+                            releaseDate={releaseDate}
                         />
-                        <h1>
-                            <sup>{trackNumber}</sup>&#8260;
-                            <sub>{totalTracks}</sub>
-                        </h1>
-                        <h2>{songTitle}</h2>
-                        <h3>{albumTitle}</h3>
-                        <h3>{artist}</h3>
-                        <h3>{releaseDate}</h3>
+                        {notes.map((note) => (
+                            <>
+                                <h2 className="timestamp">{note.timestamp}</h2>
+                                <h3>{note.note}</h3>
+                            </>
+                        ))}
                     </div>
                     <div className="col-9">
                         <div className="row" id="add-note-spacer">
@@ -82,6 +146,44 @@ function App() {
                                 className="col-10 align-self-center"
                                 style={{ position: "relative" }}
                             >
+                                {notes.map((note) => (
+                                    <>
+                                        <br />
+                                        <button
+                                            type="button"
+                                            className="btn add-note-button"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-title={note.note}
+                                            data-bs-custom-class="custom-tooltip"
+                                            style={{
+                                                left: timestampToPlaybackPercent(
+                                                    note.timestamp
+                                                ),
+                                                top: "5%",
+                                                position: "absolute",
+                                            }}
+                                            onClick={setUserPlaybackProgress}
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="32"
+                                                height="32"
+                                                fill="currentColor"
+                                                className="bi bi-vector-pen"
+                                                viewBox="0 0 16 16"
+                                            >
+                                                <path
+                                                    fillRule="evenodd"
+                                                    d="M10.646.646a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1 0 .708l-1.902 1.902-.829 3.313a1.5 1.5 0 0 1-1.024 1.073L1.254 14.746 4.358 4.4A1.5 1.5 0 0 1 5.43 3.377l3.313-.828L10.646.646zm-1.8 2.908-3.173.793a.5.5 0 0 0-.358.342l-2.57 8.565 8.567-2.57a.5.5 0 0 0 .34-.357l.794-3.174-3.6-3.6z"
+                                                />
+                                                <path
+                                                    fillRule="evenodd"
+                                                    d="M2.832 13.228 8 9a1 1 0 1 0-1-1l-4.228 5.168-.026.086.086-.026z"
+                                                />
+                                            </svg>
+                                        </button>
+                                    </>
+                                ))}
                                 <br />
                                 <button
                                     type="button"
@@ -147,92 +249,7 @@ function App() {
                     </div>
                 </div>
             </div>
-            <div
-                className="modal fade"
-                id="noteInterface"
-                data-bs-backdrop="static"
-                data-bs-keyboard="false"
-                tabIndex="-1"
-                aria-labelledby="staticBackdropLabel"
-                aria-hidden="true"
-            >
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1
-                                className="modal-title fs-5"
-                                id="staticBackdropLabel"
-                            >
-                                Add a note
-                            </h1>
-                            <button
-                                type="button"
-                                className="btn-close"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                            ></button>
-                        </div>
-                        <div className="modal-body">
-                            <form className="note-form">
-                                <label
-                                    htmlFor="timestampInput"
-                                    className="form-label"
-                                >
-                                    Timestamp
-                                </label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="timestampInput"
-                                    name="timestamp"
-                                    value={tempTimeStamp}
-                                ></input>
-                                <label
-                                    htmlFor="lengthInput"
-                                    className="form-label mt-2"
-                                >
-                                    Length (0 if instantaneous)
-                                </label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="lengthInput"
-                                    name="length"
-                                    value="0"
-                                ></input>
-                                <label
-                                    htmlFor="noteInput"
-                                    className="form-label mt-2"
-                                >
-                                    Note
-                                </label>
-                                <textarea
-                                    className="form-control"
-                                    id="noteInput"
-                                    rows="3"
-                                    name="note"
-                                ></textarea>
-                            </form>
-                        </div>
-                        <div className="modal-footer">
-                            <button
-                                type="button"
-                                className="btn close-btn"
-                                data-bs-dismiss="modal"
-                            >
-                                Close
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-primary save-note"
-                                // data-bs-dismiss="modal"
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <NoteModal tempTimeStamp={tempTimeStamp} />
         </>
     );
 }

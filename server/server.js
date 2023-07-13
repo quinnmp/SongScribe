@@ -18,7 +18,7 @@ let accessToken = "";
 
 let playerData = undefined;
 
-async function getAuth(code, state) {
+async function getAuth(code) {
     try {
         const data = qs.stringify({
             grant_type: "authorization_code",
@@ -58,6 +58,25 @@ async function getPlayerState() {
     }
 }
 
+async function seekToPosition(timeInMS) {
+    const apiURL = `https://api.spotify.com/v1/me/player/seek`;
+
+    const data = {
+        position_ms: timeInMS,
+    };
+
+    try {
+        await axios.put(apiURL, data, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 function makeID(length) {
     let result = "";
     const characters =
@@ -75,7 +94,7 @@ function makeID(length) {
 
 app.get("/login", function (req, res) {
     var state = makeID(16);
-    var scope = "user-read-playback-state";
+    var scope = "user-read-playback-state user-modify-playback-state";
 
     res.redirect(
         "https://accounts.spotify.com/authorize?" +
@@ -100,6 +119,15 @@ app.get("/api", (req, res) => {
     }
     getPlayerState();
     res.send(playerData);
+});
+
+app.put("/api", (req, res) => {
+    if (accessToken == "") {
+        res.redirect("/login");
+    }
+    console.log("put request recieved");
+    seekToPosition(1000);
+    res.send(JSON.stringify({ status: "success" }));
 });
 
 app.listen(5000, () => {

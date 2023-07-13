@@ -21,6 +21,10 @@ label {
     color: #d8e9a8;
 }
 
+.timestamp {
+    text-align: left;
+}
+
 .form-range::-webkit-slider-thumb {
     background: #1e5128;
 }
@@ -29,12 +33,22 @@ label {
     background: #d8e9a8;
 }
 
-.add-note-button {
+.custom-tooltip {
+    --bs-tooltip-bg: #1e5128;
+    --bs-tooltip-color: #d8e9a8;
+}
+
+.add-note-button,
+.add-note-button:focus {
     background-color: #d8e9a8;
     color: #1e5128;
     padding: 0px;
     border-width: 5px;
     border-color: #1e5128;
+}
+
+.add-note-button:hover {
+    background-color: #191a19;
 }
 
 .modal-content {
