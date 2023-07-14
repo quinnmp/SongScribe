@@ -90,52 +90,76 @@ function App() {
         }
 
         $(document).ready(function () {
-            console.log("document ready");
-            $(".form-range").on("change", async function (event) {
-                await setUserPlaybackProgress(event.currentTarget.value);
-                await setPlaybackProgress(event.currentTarget.value);
-            });
-            $(".form-range").on("input", async function (event) {
-                await setScrubbing(true);
-                setPlaybackProgress(event.currentTarget.value);
-                sliderProgress = event.currentTarget.value;
-            });
+            $(".form-range")
+                .off("change")
+                .on("change", async function (event) {
+                    await setUserPlaybackProgress(event.currentTarget.value);
+                    await setPlaybackProgress(event.currentTarget.value);
+                });
+            $(".form-range")
+                .off("input")
+                .on("input", async function (event) {
+                    await setScrubbing(true);
+                    setPlaybackProgress(event.currentTarget.value);
+                    sliderProgress = event.currentTarget.value;
+                });
             $('[data-bs-toggle="tooltip"]').tooltip({
                 trigger: "hover",
             });
-            $("#noteInterface").on("shown.bs.modal", function () {
-                $("#noteInput").focus();
-            });
-            $(".save-note").click(async function () {
-                let noteData = $(".note-form").serializeArray();
-                await setNotes([
-                    ...notes,
-                    new Note(
-                        noteData[0].value,
-                        noteData[1].value,
-                        noteData[2].value === ""
-                            ? "(no note)"
-                            : noteData[2].value
-                    ),
-                ]);
-                $("#noteInput").val("");
-            });
-
+            $("#noteInterface")
+                .off("shown.bs.modal")
+                .on("shown.bs.modal", function () {
+                    $("#noteInput").focus();
+                });
+            $(".save-note")
+                .off("click")
+                .click(async function () {
+                    let noteData = $(".note-form").serializeArray();
+                    await setNotes([
+                        ...notes,
+                        new Note(
+                            noteData[0].value,
+                            noteData[1].value,
+                            noteData[2].value === ""
+                                ? "(no note)"
+                                : noteData[2].value
+                        ),
+                    ]);
+                    $("#noteInput").val("");
+                });
+            $("#noteInput")
+                .off("keydown")
+                .on("keydown", function (event) {
+                    console.log("keydown");
+                    if (event.key === "Enter") {
+                        $(".save-note").click();
+                    }
+                });
             notes.map((note, i) => {
                 let buttonID = "#edit-note" + i;
                 let formID = "#note-form" + i;
-                $(buttonID).click(async function () {
-                    let noteData = $(formID).serializeArray();
-                    let editedNote = new Note(
-                        noteData[0].value,
-                        noteData[1].value,
-                        noteData[2].value === ""
-                            ? "(no note)"
-                            : noteData[2].value
-                    );
-                    await setNotes(notes.splice(i, 0, editedNote));
-                    await setNotes(notes.splice(i, 1));
+                let textareaID = "#noteInput" + i;
+                $(textareaID).on("keydown", function (event) {
+                    console.log("keydown");
+                    if (event.key === "Enter") {
+                        $(buttonID).click();
+                    }
                 });
+                $(buttonID)
+                    .off("click")
+                    .click(async function () {
+                        console.log("click");
+                        let noteData = $(formID).serializeArray();
+                        let editedNote = new Note(
+                            noteData[0].value,
+                            noteData[1].value,
+                            noteData[2].value === ""
+                                ? "(no note)"
+                                : noteData[2].value
+                        );
+                        await setNotes(notes.splice(i, 0, editedNote));
+                        await setNotes(notes.splice(i, 1));
+                    });
             });
         });
         return () => {
