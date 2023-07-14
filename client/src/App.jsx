@@ -20,6 +20,7 @@ function App() {
 
     useEffect(() => {
         function getPlaybackState() {
+            console.log("getPlaybackState()");
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
@@ -53,10 +54,58 @@ function App() {
         }
         getPlaybackState();
         const interval = setInterval(() => getPlaybackState(), 1000);
+
+        class Note {
+            constructor(timestamp, length, note) {
+                this.timestamp = timestamp;
+                this.length = length;
+                this.note = note;
+            }
+        }
+
+        $(document).ready(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip({
+                trigger: "hover",
+            });
+            $("#noteInterface").on("shown.bs.modal", function () {
+                $("#noteInput").focus();
+            });
+            $(".save-note").click(async function () {
+                let noteData = $(".note-form").serializeArray();
+                await setNotes([
+                    ...notes,
+                    new Note(
+                        noteData[0].value,
+                        noteData[1].value,
+                        noteData[2].value === ""
+                            ? "(no note)"
+                            : noteData[2].value
+                    ),
+                ]);
+                $("#noteInput").val("");
+            });
+
+            notes.map((note, i) => {
+                let buttonID = "#edit-note" + i;
+                let formID = "#note-form" + i;
+                $(buttonID).click(async function () {
+                    let noteData = $(formID).serializeArray();
+                    let editedNote = new Note(
+                        noteData[0].value,
+                        noteData[1].value,
+                        noteData[2].value === ""
+                            ? "(no note)"
+                            : noteData[2].value
+                    );
+                    await setNotes(notes.splice(i, 0, editedNote));
+                    await setNotes(notes.splice(i, 1));
+                });
+            });
+        });
         return () => {
             clearInterval(interval);
         };
-    }, []);
+    }, [notes]);
 
     async function setUserPlaybackProgress(timestamp) {
         const requestOptions = {
@@ -83,57 +132,6 @@ function App() {
         const minutes = timestamp.split(":")[0];
         const seconds = timestamp.split(":")[1];
         return minutes * 1000 * 60 + seconds * 1000;
-    }
-
-    $(document).ready(function () {
-        console.log("Document ready");
-        $('[data-bs-toggle="tooltip"]').tooltip({
-            trigger: "hover",
-        });
-        $("#noteInterface").on("shown.bs.modal", function () {
-            $("#noteInput").focus();
-        });
-        $("#timestampInput").on("keydown", function (event) {
-            console.log(event);
-            $("#timestampInput").val(
-                $("#timestampInput").val().concat(event.key)
-            );
-        });
-        $(".save-note").click(async function () {
-            let noteData = $(".note-form").serializeArray();
-            await setNotes([
-                ...notes,
-                new Note(
-                    noteData[0].value,
-                    noteData[1].value,
-                    noteData[2].value === "" ? "(no note)" : noteData[2].value
-                ),
-            ]);
-            $("#noteInput").val("");
-        });
-
-        notes.map((note, i) => {
-            let buttonID = "#edit-note" + i;
-            let formID = "#note-form" + i;
-            $(buttonID).click(async function () {
-                let noteData = $(formID).serializeArray();
-                let editedNote = new Note(
-                    noteData[0].value,
-                    noteData[1].value,
-                    noteData[2].value === "" ? "(no note)" : noteData[2].value
-                );
-                notes.splice(i, 0, editedNote);
-                notes.splice(i + 1, 1);
-            });
-        });
-    });
-
-    class Note {
-        constructor(timestamp, length, note) {
-            this.timestamp = timestamp;
-            this.length = length;
-            this.note = note;
-        }
     }
 
     return (

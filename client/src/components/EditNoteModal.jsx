@@ -41,7 +41,7 @@ function EditNoteModal(props) {
                                     className="form-control"
                                     id={"timestampInput" + props.index}
                                     name="timestamp"
-                                    value={props.timestamp}
+                                    defaultValue={props.timestamp}
                                 ></input>
                                 <label
                                     htmlFor={"lengthInput" + props.index}
@@ -54,7 +54,7 @@ function EditNoteModal(props) {
                                     className="form-control"
                                     id={"lengthInput" + props.index}
                                     name="length"
-                                    value={props.length}
+                                    defaultValue={props.length}
                                 ></input>
                                 <label
                                     htmlFor={"noteInput" + props.index}
@@ -67,19 +67,13 @@ function EditNoteModal(props) {
                                     id={"noteInput" + props.index}
                                     rows="3"
                                     name="note"
-                                    value={props.note}
-                                    onKeyDown={(event) => {
-                                        console.log(event.key);
-                                        $(textareaID).val(
-                                            $(textareaID).val() + event.key
-                                        );
-                                    }}
+                                    defaultValue={props.note}
                                 ></textarea>
                                 <input
                                     type="text"
                                     className="visually-hidden"
                                     name="index"
-                                    value={props.index}
+                                    defaultValue={props.index}
                                 ></input>
                             </form>
                         </div>

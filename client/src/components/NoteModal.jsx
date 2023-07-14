@@ -39,7 +39,7 @@ function NoteModal(props) {
                                     className="form-control"
                                     id="timestampInput"
                                     name="timestamp"
-                                    value={props.tempTimeStamp}
+                                    defaultValue={props.tempTimeStamp}
                                 ></input>
                                 <label
                                     htmlFor="lengthInput"
@@ -52,7 +52,7 @@ function NoteModal(props) {
                                     className="form-control"
                                     id="lengthInput"
                                     name="length"
-                                    value="0"
+                                    defaultValue="0"
                                 ></input>
                                 <label
                                     htmlFor="noteInput"
