@@ -17,10 +17,11 @@ function App() {
     const [artist, setArtist] = useState("");
     const [releaseDate, setReleaseDate] = useState("");
     const [notes, setNotes] = useState([]);
+    const [scrubbing, setScrubbing] = useState(false);
 
     useEffect(() => {
+        let sliderProgress = 0;
         function getPlaybackState() {
-            console.log("getPlaybackState()");
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
@@ -30,18 +31,43 @@ function App() {
                     return response.json();
                 })
                 .then((data) => {
-                    setPlaybackProgress(data.progress_ms);
+                    console.log(Math.abs(data.progress_ms - sliderProgress));
+                    if (Math.abs(data.progress_ms - sliderProgress) < 2000) {
+                        setScrubbing(false);
+                    }
+                    if (!scrubbing) {
+                        setPlaybackProgress(data.progress_ms);
+                    }
                     setPlaybackProgressString(
-                        Math.floor(data.progress_ms / 1000 / 60) +
+                        Math.floor(
+                            (scrubbing ? sliderProgress : data.progress_ms) /
+                                1000 /
+                                60
+                        ) +
                             ":" +
-                            (Math.floor((data.progress_ms / 1000) % 60) < 10
+                            (Math.floor(
+                                ((scrubbing
+                                    ? sliderProgress
+                                    : data.progress_ms) /
+                                    1000) %
+                                    60
+                            ) < 10
                                 ? "0"
                                 : "") +
-                            Math.floor((data.progress_ms / 1000) % 60)
+                            Math.floor(
+                                ((scrubbing
+                                    ? sliderProgress
+                                    : data.progress_ms) /
+                                    1000) %
+                                    60
+                            )
                     );
                     setTrackLength(data.item.duration_ms);
                     setPlaybackPercent(
-                        (data.progress_ms / data.item.duration_ms) * 95 + "%"
+                        ((scrubbing ? sliderProgress : data.progress_ms) /
+                            data.item.duration_ms) *
+                            95 +
+                            "%"
                     );
                     setAlbumCoverURL(data.item.album.images[0].url);
                     setTotalTracks(data.item.album.total_tracks);
@@ -64,6 +90,16 @@ function App() {
         }
 
         $(document).ready(function () {
+            console.log("document ready");
+            $(".form-range").on("change", async function (event) {
+                await setUserPlaybackProgress(event.currentTarget.value);
+                await setPlaybackProgress(event.currentTarget.value);
+            });
+            $(".form-range").on("input", async function (event) {
+                await setScrubbing(true);
+                setPlaybackProgress(event.currentTarget.value);
+                sliderProgress = event.currentTarget.value;
+            });
             $('[data-bs-toggle="tooltip"]').tooltip({
                 trigger: "hover",
             });
@@ -105,7 +141,7 @@ function App() {
         return () => {
             clearInterval(interval);
         };
-    }, [notes]);
+    }, [notes, scrubbing]);
 
     async function setUserPlaybackProgress(timestamp) {
         const requestOptions = {
