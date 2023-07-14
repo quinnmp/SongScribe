@@ -21,8 +21,15 @@ label {
     color: #d8e9a8;
 }
 
+.timestamp:hover {
+    text-decoration-color: #b0be89;
+    color: #b0be89;
+}
+
 .timestamp {
     text-align: left;
+    text-decoration: underline;
+    text-decoration-color: #d8e9a8;
 }
 
 .form-range::-webkit-slider-thumb {

@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://127.0.0.1:5173" }));
 require("dotenv").config();
@@ -52,7 +53,7 @@ async function getPlayerState() {
                 Authorization: `Bearer ${accessToken}`,
             },
         });
-        playerData = response.data;
+        return response.data;
     } catch (error) {
         console.log(error);
     }
@@ -66,14 +67,15 @@ async function seekToPosition(timeInMS) {
     };
 
     try {
-        await axios.put(apiURL, data, {
+        await axios.put(apiURL, null, {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 "Content-Type": "application/json",
             },
+            params: data,
         });
     } catch (error) {
-        console.log(error);
+        console.log(error.response.data);
     }
 }
 
@@ -113,11 +115,11 @@ app.get("/callback", async function (req, res) {
     res.redirect("/api");
 });
 
-app.get("/api", (req, res) => {
+app.get("/api", async (req, res) => {
     if (accessToken == "") {
         res.redirect("/login");
     }
-    getPlayerState();
+    const playerData = await getPlayerState();
     res.send(playerData);
 });
 
@@ -125,8 +127,7 @@ app.put("/api", (req, res) => {
     if (accessToken == "") {
         res.redirect("/login");
     }
-    console.log("put request recieved");
-    seekToPosition(1000);
+    seekToPosition(req.body.timeInMS);
     res.send(JSON.stringify({ status: "success" }));
 });
 

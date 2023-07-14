@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AlbumSidebar from "./components/AlbumSidebar.jsx";
 import NoteModal from "./components/NoteModal.jsx";
+import EditNoteModal from "./components/EditNoteModal.jsx";
 
 function App() {
     const [playbackProgress, setPlaybackProgress] = useState(-1);
@@ -22,7 +23,6 @@ function App() {
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
-                // body: JSON.stringify({ title: "Fetch PUT Request Example" }),
             };
             fetch("http://localhost:5000/api", requestOptions)
                 .then((response) => {
@@ -58,11 +58,11 @@ function App() {
         };
     }, []);
 
-    async function setUserPlaybackProgress() {
+    async function setUserPlaybackProgress(timestamp) {
         const requestOptions = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            // body: JSON.stringify({ title: "Fetch PUT Request Example" }),
+            body: JSON.stringify({ timeInMS: timestamp }),
         };
         await fetch("http://localhost:5000/api", requestOptions)
             .then((response) => {
@@ -76,25 +76,28 @@ function App() {
     }
 
     function timestampToPlaybackPercent(timestamp) {
+        return (timestampToMilliseconds(timestamp) / trackLength) * 95 + "%";
+    }
+
+    function timestampToMilliseconds(timestamp) {
         const minutes = timestamp.split(":")[0];
         const seconds = timestamp.split(":")[1];
-        return (
-            ((minutes * 1000 * 60 + seconds * 1000) / trackLength) * 95 + "%"
-        );
+        return minutes * 1000 * 60 + seconds * 1000;
     }
 
     $(document).ready(function () {
-        // const tooltipTriggerList = document.querySelectorAll(
-        //     '[data-bs-toggle="tooltip"]'
-        // );
-        // const tooltipList = [...tooltipTriggerList].map(
-        //     (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
-        // );
-        // $('[data-bs-toggle="tooltip"]').tooltip({
-        //     trigger: "hover",
-        // });
+        console.log("Document ready");
+        $('[data-bs-toggle="tooltip"]').tooltip({
+            trigger: "hover",
+        });
         $("#noteInterface").on("shown.bs.modal", function () {
             $("#noteInput").focus();
+        });
+        $("#timestampInput").on("keydown", function (event) {
+            console.log(event);
+            $("#timestampInput").val(
+                $("#timestampInput").val().concat(event.key)
+            );
         });
         $(".save-note").click(async function () {
             let noteData = $(".note-form").serializeArray();
@@ -103,10 +106,25 @@ function App() {
                 new Note(
                     noteData[0].value,
                     noteData[1].value,
-                    noteData[2].value
+                    noteData[2].value === "" ? "(no note)" : noteData[2].value
                 ),
             ]);
             $("#noteInput").val("");
+        });
+
+        notes.map((note, i) => {
+            let buttonID = "#edit-note" + i;
+            let formID = "#note-form" + i;
+            $(buttonID).click(async function () {
+                let noteData = $(formID).serializeArray();
+                let editedNote = new Note(
+                    noteData[0].value,
+                    noteData[1].value,
+                    noteData[2].value === "" ? "(no note)" : noteData[2].value
+                );
+                notes.splice(i, 0, editedNote);
+                notes.splice(i + 1, 1);
+            });
         });
     });
 
@@ -132,9 +150,48 @@ function App() {
                             artist={artist}
                             releaseDate={releaseDate}
                         />
-                        {notes.map((note) => (
+                        {notes.map((note, i) => (
                             <>
-                                <h2 className="timestamp">{note.timestamp}</h2>
+                                <h2
+                                    className="timestamp d-inline-block"
+                                    onClick={() =>
+                                        setUserPlaybackProgress(
+                                            timestampToMilliseconds(
+                                                note.timestamp
+                                            )
+                                        )
+                                    }
+                                >
+                                    {note.timestamp}
+                                </h2>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    fill="#d8e9a8"
+                                    className="bi bi-pencil-square"
+                                    viewBox="0 0 16 16"
+                                    data-bs-toggle="modal"
+                                    data-bs-target={"#editNoteInterface" + i}
+                                >
+                                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"
+                                    />
+                                </svg>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    fill="#d8e9a8"
+                                    className="bi bi-trash"
+                                    viewBox="0 0 16 16"
+                                    onClick={() => notes.splice(i, 1)}
+                                >
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+                                </svg>
                                 <h3>{note.note}</h3>
                             </>
                         ))}
@@ -162,7 +219,13 @@ function App() {
                                                 top: "5%",
                                                 position: "absolute",
                                             }}
-                                            onClick={setUserPlaybackProgress}
+                                            onClick={() =>
+                                                setUserPlaybackProgress(
+                                                    timestampToMilliseconds(
+                                                        note.timestamp
+                                                    )
+                                                )
+                                            }
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -250,6 +313,14 @@ function App() {
                 </div>
             </div>
             <NoteModal tempTimeStamp={tempTimeStamp} />
+            {notes.map((note, i) => (
+                <EditNoteModal
+                    index={i}
+                    timestamp={note.timestamp}
+                    length={note.length}
+                    note={note.note}
+                />
+            ))}
         </>
     );
 }
