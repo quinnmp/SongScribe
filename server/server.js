@@ -4,10 +4,44 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const mongoose = require("mongoose");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://127.0.0.1:5173" }));
 require("dotenv").config();
+
+mongoose.connect(
+    `mongodb+srv://miles:${process.env.DB_PASSWORD}@userscribes.rzgicer.mongodb.net/`
+);
+
+const userScribesSchema = new mongoose.Schema({
+    id: String,
+    songs: [
+        {
+            id: String,
+            quickSummary: String,
+            review: String,
+            notes: [
+                {
+                    timestamp: String,
+                    length: Number,
+                    note: String,
+                },
+            ],
+        },
+    ],
+});
+
+const UserScribe = mongoose.model("UserScribe", userScribesSchema);
+
+let userScribeArray = new Array();
+async function retrieveUserScribes() {
+    try {
+        userScribeArray = await UserScribe.find({}).exec();
+    } catch (e) {
+        console.log(e);
+    }
+}
 
 const clientID = process.env.SPOTIFY_API_ID;
 const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -59,6 +93,21 @@ async function getPlayerState() {
     }
 }
 
+async function getUserData() {
+    const apiURL = `https://api.spotify.com/v1/me`;
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 async function seekToPosition(timeInMS) {
     const apiURL = `https://api.spotify.com/v1/me/player/seek`;
 
@@ -96,7 +145,8 @@ function makeID(length) {
 
 app.get("/login", function (req, res) {
     var state = makeID(16);
-    var scope = "user-read-playback-state user-modify-playback-state";
+    var scope =
+        "user-read-playback-state user-modify-playback-state user-read-private user-read-email";
 
     res.redirect(
         "https://accounts.spotify.com/authorize?" +
@@ -118,9 +168,35 @@ app.get("/callback", async function (req, res) {
 app.get("/api", async (req, res) => {
     if (accessToken == "") {
         res.redirect("/login");
+    } else {
+        retrieveUserScribes();
+        const userData = await getUserData();
+        const playerData = await getPlayerState();
+        let databaseData = {
+            quickSummary: "",
+            review: "",
+            notes: [],
+        };
+        let playingSongID = "";
+        if (playerData.item) {
+            playingSongID = playerData.item.id;
+        }
+        await userScribeArray.forEach((scribe) => {
+            if (scribe.id === userData.id) {
+                scribe.songs.forEach((song) => {
+                    if (song.id === playingSongID) {
+                        databaseData = song;
+                    }
+                });
+            }
+        });
+        res.send(
+            JSON.stringify({
+                spotify_data: playerData,
+                database_data: databaseData,
+            })
+        );
     }
-    const playerData = await getPlayerState();
-    res.send(playerData);
 });
 
 app.put("/api", (req, res) => {
@@ -128,6 +204,49 @@ app.put("/api", (req, res) => {
         res.redirect("/login");
     }
     seekToPosition(req.body.timeInMS);
+    res.send(JSON.stringify({ status: "success" }));
+});
+
+app.post("/api", async (req, res) => {
+    console.log(req.body);
+    retrieveUserScribes();
+    const userData = await getUserData();
+    let containsUser = false;
+    let containsSong = false;
+    userScribeArray.forEach((scribe) => {
+        if (scribe.id === userData.id) {
+            containsUser = true;
+        }
+    });
+    if (!containsUser) {
+        const userScribe = new UserScribe({
+            id: userData.id,
+            songs: [],
+        });
+        userScribe.save();
+    }
+    userScribeArray.forEach((scribe) => {
+        if (scribe.id === userData.id) {
+            scribe.songs.forEach((song) => {
+                if (song.id === req.body.id) {
+                    containsSong = true;
+                    song.quickSummary = req.body.quickSummary;
+                    song.review = req.body.review;
+                    song.notes = req.body.notes;
+                }
+            });
+            if (!containsSong) {
+                console.log("DOES NOT CONTAIN SONG YET");
+                scribe.songs.push({
+                    id: req.body.id,
+                    quickSummary: req.body.quickSummary,
+                    review: req.body.review,
+                    notes: req.body.notes,
+                });
+            }
+            scribe.save();
+        }
+    });
     res.send(JSON.stringify({ status: "success" }));
 });
 

@@ -5,6 +5,7 @@ import EditNoteModal from "./components/EditNoteModal.jsx";
 import SidebarNote from "./components/SidebarNote.jsx";
 
 function App() {
+    const [songID, setSongID] = useState("");
     const [playbackProgress, setPlaybackProgress] = useState(-1);
     const [playbackProgressString, setPlaybackProgressString] = useState("");
     const [tempTimeStamp, setTempTimeStamp] = useState("");
@@ -19,6 +20,7 @@ function App() {
     const [releaseDate, setReleaseDate] = useState("");
     const [notes, setNotes] = useState([]);
     const [scrubbing, setScrubbing] = useState(false);
+    const [uploadingNote, setUploadingNote] = useState(false);
 
     useEffect(() => {
         let sliderProgress = 0;
@@ -32,15 +34,27 @@ function App() {
                     return response.json();
                 })
                 .then((data) => {
-                    if (Math.abs(data.progress_ms - sliderProgress) < 2000) {
+                    if (data.spotify_data.item.id != songID) {
+                        setNotes([]);
+                        $("#quick-summary-input").val("");
+                        $("#review-input").val("");
+                    }
+                    setSongID(data.spotify_data.item.id);
+                    if (
+                        Math.abs(
+                            data.spotify_data.progress_ms - sliderProgress
+                        ) < 2000
+                    ) {
                         setScrubbing(false);
                     }
                     if (!scrubbing) {
-                        setPlaybackProgress(data.progress_ms);
+                        setPlaybackProgress(data.spotify_data.progress_ms);
                     }
                     setPlaybackProgressString(
                         Math.floor(
-                            (scrubbing ? sliderProgress : data.progress_ms) /
+                            (scrubbing
+                                ? sliderProgress
+                                : data.spotify_data.progress_ms) /
                                 1000 /
                                 60
                         ) +
@@ -48,7 +62,7 @@ function App() {
                             (Math.floor(
                                 ((scrubbing
                                     ? sliderProgress
-                                    : data.progress_ms) /
+                                    : data.spotify_data.progress_ms) /
                                     1000) %
                                     60
                             ) < 10
@@ -57,25 +71,43 @@ function App() {
                             Math.floor(
                                 ((scrubbing
                                     ? sliderProgress
-                                    : data.progress_ms) /
+                                    : data.spotify_data.progress_ms) /
                                     1000) %
                                     60
                             )
                     );
-                    setTrackLength(data.item.duration_ms);
+                    setTrackLength(data.spotify_data.item.duration_ms);
                     setPlaybackPercent(
-                        ((scrubbing ? sliderProgress : data.progress_ms) /
-                            data.item.duration_ms) *
+                        ((scrubbing
+                            ? sliderProgress
+                            : data.spotify_data.progress_ms) /
+                            data.spotify_data.item.duration_ms) *
                             95 +
                             "%"
                     );
-                    setAlbumCoverURL(data.item.album.images[0].url);
-                    setTotalTracks(data.item.album.total_tracks);
-                    setTrackNumber(data.item.track_number);
-                    setSongTitle(data.item.name);
-                    setAlbumTitle(data.item.album.name);
-                    setArtist(data.item.artists[0].name);
-                    setReleaseDate(data.item.album.release_date);
+                    setAlbumCoverURL(
+                        data.spotify_data.item.album.images[0].url
+                    );
+                    setTotalTracks(data.spotify_data.item.album.total_tracks);
+                    setTrackNumber(data.spotify_data.item.track_number);
+                    setSongTitle(data.spotify_data.item.name);
+                    setAlbumTitle(data.spotify_data.item.album.name);
+                    setArtist(data.spotify_data.item.artists[0].name);
+                    setReleaseDate(data.spotify_data.item.album.release_date);
+                    if ($("#quick-summary-input").val() === "") {
+                        $("#quick-summary-input").val(
+                            data.database_data.quickSummary
+                        );
+                    }
+                    if ($("#review-input").val() === "") {
+                        $("#review-input").val(data.database_data.review);
+                    }
+                    if (notes.length === 0) {
+                        console.log("empty notes");
+                        data.database_data.notes.map((note) =>
+                            setNotes([...notes, note])
+                        );
+                    }
                 });
         }
         getPlaybackState();
@@ -127,10 +159,20 @@ function App() {
                     ]);
                     $("#noteInput").val("");
                 });
+            $("#save-song-data")
+                .off("click")
+                .click(
+                    debounce(async function () {
+                        if (!uploadingNote) {
+                            setUploadingNote(true);
+                            await submitNote();
+                            setUploadingNote(false);
+                        }
+                    }, 1000)
+                );
             $("#noteInput")
                 .off("keydown")
                 .on("keydown", function (event) {
-                    console.log("keydown");
                     if (event.key === "Enter") {
                         $(".save-note").click();
                     }
@@ -163,13 +205,45 @@ function App() {
         return () => {
             clearInterval(interval);
         };
-    }, [notes, scrubbing]);
+    }, [notes, scrubbing, uploadingNote]);
+
+    const debounce = (func, wait) => {
+        let timeout;
+
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
 
     async function setUserPlaybackProgress(timestamp) {
         const requestOptions = {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ timeInMS: timestamp }),
+        };
+        await fetch("http://localhost:5000/api", requestOptions)
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => console.log(data));
+    }
+
+    async function submitNote() {
+        const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: songID,
+                quickSummary: $("#quick-summary-input").val(),
+                review: $("#review-input").val(),
+                notes: notes,
+            }),
         };
         await fetch("http://localhost:5000/api", requestOptions)
             .then((response) => {
@@ -331,6 +405,39 @@ function App() {
                                         : ""}
                                     {Math.floor((trackLength / 1000) % 60)}
                                 </h3>
+                            </div>
+                            <div className="p-5">
+                                <label
+                                    htmlFor="quick-summary-input"
+                                    className="form-label mt-5"
+                                >
+                                    <h2>Quick summary</h2>
+                                </label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    id="quick-summary-input"
+                                    name="quick-summary"
+                                ></input>
+                                <label
+                                    htmlFor="review-input"
+                                    className="form-label mt-5"
+                                >
+                                    <h2>Review</h2>
+                                </label>
+                                <textarea
+                                    className="form-control"
+                                    id="review-input"
+                                    rows="10"
+                                    name="review"
+                                ></textarea>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary mt-3"
+                                    id="save-song-data"
+                                >
+                                    Save
+                                </button>
                             </div>
                         </div>
                     </div>
