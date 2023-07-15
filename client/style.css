@@ -2,6 +2,12 @@ body {
     background: #191a19;
 }
 
+hr {
+    border: 1px solid #d8e9a8;
+    border-radius: 10px;
+    opacity: 100%;
+}
+
 h1,
 h2,
 h3 {
@@ -19,6 +25,10 @@ h3 {
 
 label {
     color: #d8e9a8;
+}
+
+#album-page-cover {
+    max-width: 25%;
 }
 
 .timestamp:hover {

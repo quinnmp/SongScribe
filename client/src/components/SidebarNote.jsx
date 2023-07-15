@@ -9,7 +9,7 @@ function SidebarNote(props) {
                 width="16"
                 height="16"
                 fill="#d8e9a8"
-                className="bi bi-pencil-square"
+                className="bi bi-pencil-square ms-2"
                 viewBox="0 0 16 16"
                 data-bs-toggle="modal"
                 data-bs-target={"#editNoteInterface" + props.index}
@@ -25,7 +25,7 @@ function SidebarNote(props) {
                 width="16"
                 height="16"
                 fill="#d8e9a8"
-                className="bi bi-trash"
+                className="bi bi-trash ms-2"
                 viewBox="0 0 16 16"
                 onClick={() => props.notes.splice(props.index, 1)}
             >

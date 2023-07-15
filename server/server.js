@@ -93,6 +93,21 @@ async function getPlayerState() {
     }
 }
 
+async function getAlbumData(id) {
+    const apiURL = `https://api.spotify.com/v1/albums/` + id;
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 async function getUserData() {
     const apiURL = `https://api.spotify.com/v1/me`;
 
@@ -172,12 +187,27 @@ app.get("/api", async (req, res) => {
         retrieveUserScribes();
         const userData = await getUserData();
         const playerData = await getPlayerState();
+        let albumData = {};
+        if (playerData.item) {
+            albumData = await getAlbumData(playerData.item.album.id);
+        }
+
+        let trackIDArray = [];
+        if (albumData) {
+            albumData.tracks.items.map((track) => {
+                trackIDArray.push(track.id);
+            });
+        }
+
         let databaseData = {
             quickSummary: "",
             review: "",
             notes: [],
         };
         let playingSongID = "";
+        let albumReviews = [];
+        let songsWithData = [];
+
         if (playerData.item) {
             playingSongID = playerData.item.id;
         }
@@ -187,13 +217,25 @@ app.get("/api", async (req, res) => {
                     if (song.id === playingSongID) {
                         databaseData = song;
                     }
+                    if (trackIDArray.includes(song.id)) {
+                        albumReviews.push({
+                            id: song.id,
+                            quick_summary: song.quickSummary,
+                            review_count: song.notes.length,
+                        });
+                        songsWithData.push(song.id);
+                    }
                 });
             }
         });
+
         res.send(
             JSON.stringify({
-                spotify_data: playerData,
+                spotify_player_data: playerData,
+                spotify_album_data: albumData,
                 database_data: databaseData,
+                album_reviews: albumReviews,
+                songs_with_data: songsWithData,
             })
         );
     }
@@ -236,7 +278,6 @@ app.post("/api", async (req, res) => {
                 }
             });
             if (!containsSong) {
-                console.log("DOES NOT CONTAIN SONG YET");
                 scribe.songs.push({
                     id: req.body.id,
                     quickSummary: req.body.quickSummary,
