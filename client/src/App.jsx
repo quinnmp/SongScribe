@@ -203,6 +203,11 @@ function App() {
                         $(buttonID).click();
                     }
                 });
+                $("#editNoteInterface" + i)
+                    .off("shown.bs.modal")
+                    .on("shown.bs.modal", function () {
+                        $("#noteInput" + i).focus();
+                    });
                 $(buttonID)
                     .off("click")
                     .click(async function () {
