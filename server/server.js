@@ -184,66 +184,57 @@ app.get("/api", async (req, res) => {
     if (accessToken == "") {
         res.redirect("/login");
     } else {
-        retrieveUserScribes();
-        const userData = await getUserData();
-        const playerData = await getPlayerState();
-        let albumData = {};
-        if (playerData) {
-            if (playerData.item) {
-                albumData = await getAlbumData(playerData.item.album.id);
-            }
+        try {
+            retrieveUserScribes();
+            const userData = await getUserData();
+            const playerData = await getPlayerState();
+            let albumData = {};
+            albumData = await getAlbumData(playerData.item.album.id);
+
+            let trackIDArray = [];
+            albumData.tracks.items.map((track) => {
+                trackIDArray.push(track.id);
+            });
+            let databaseData = {
+                quickSummary: "",
+                review: "",
+                notes: [],
+            };
+            let playingSongID = "";
+            let albumReviews = [];
+            let songsWithData = [];
+
+            playingSongID = playerData.item.id;
+            await userScribeArray.forEach((scribe) => {
+                if (scribe.id === userData.id) {
+                    scribe.songs.forEach((song) => {
+                        if (song.id === playingSongID) {
+                            databaseData = song;
+                        }
+                        if (trackIDArray.includes(song.id)) {
+                            albumReviews.push({
+                                id: song.id,
+                                quick_summary: song.quickSummary,
+                                review_count: song.notes.length,
+                            });
+                            songsWithData.push(song.id);
+                        }
+                    });
+                }
+            });
+
+            res.send(
+                JSON.stringify({
+                    spotify_player_data: playerData,
+                    spotify_album_data: albumData,
+                    database_data: databaseData,
+                    album_reviews: albumReviews,
+                    songs_with_data: songsWithData,
+                })
+            );
+        } catch (e) {
+            console.log(e);
         }
-
-        let trackIDArray = [];
-        if (albumData) {
-            if (albumData.tracks) {
-                albumData.tracks.items.map((track) => {
-                    trackIDArray.push(track.id);
-                });
-            }
-        }
-
-        let databaseData = {
-            quickSummary: "",
-            review: "",
-            notes: [],
-        };
-        let playingSongID = "";
-        let albumReviews = [];
-        let songsWithData = [];
-
-        if (playerData) {
-            if (playerData.item) {
-                playingSongID = playerData.item.id;
-            }
-        }
-        await userScribeArray.forEach((scribe) => {
-            if (scribe.id === userData.id) {
-                scribe.songs.forEach((song) => {
-                    if (song.id === playingSongID) {
-                        databaseData = song;
-                    }
-                    if (trackIDArray.includes(song.id)) {
-                        albumReviews.push({
-                            id: song.id,
-                            quick_summary: song.quickSummary,
-                            review_count: song.notes.length,
-                        });
-                        songsWithData.push(song.id);
-                    }
-                });
-            }
-        });
-
-        res.send(
-            JSON.stringify({
-                spotify_player_data: playerData,
-                spotify_album_data: albumData,
-                database_data: databaseData,
-                album_reviews: albumReviews,
-                songs_with_data: songsWithData,
-            })
-        );
     }
 });
 

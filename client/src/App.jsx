@@ -42,88 +42,100 @@ function App() {
                     return response.json();
                 })
                 .then((data) => {
-                    if (data.spotify_player_data.item.id != songID) {
-                        setNotes([]);
-                        $("#quick-summary-input").val("");
-                        $("#review-input").val("");
-                    }
-                    setSongID(data.spotify_player_data.item.id);
-                    if (
-                        Math.abs(
-                            data.spotify_player_data.progress_ms -
-                                sliderProgress
-                        ) < 2000
-                    ) {
-                        setScrubbing(false);
-                    }
-                    if (!scrubbing) {
-                        setPlaybackProgress(
-                            data.spotify_player_data.progress_ms
+                    try {
+                        if (data.spotify_player_data.item.id != songID) {
+                            setNotes([]);
+                            $("#quick-summary-input").val("");
+                            $("#review-input").val("");
+                        }
+                        setSongID(data.spotify_player_data.item.id);
+                        if (
+                            Math.abs(
+                                data.spotify_player_data.progress_ms -
+                                    sliderProgress
+                            ) < 2000
+                        ) {
+                            setScrubbing(false);
+                        }
+                        if (!scrubbing) {
+                            setPlaybackProgress(
+                                data.spotify_player_data.progress_ms
+                            );
+                        }
+                        setPlaybackProgressString(
+                            Math.floor(
+                                (scrubbing
+                                    ? sliderProgress
+                                    : data.spotify_player_data.progress_ms) /
+                                    1000 /
+                                    60
+                            ) +
+                                ":" +
+                                (Math.floor(
+                                    ((scrubbing
+                                        ? sliderProgress
+                                        : data.spotify_player_data
+                                              .progress_ms) /
+                                        1000) %
+                                        60
+                                ) < 10
+                                    ? "0"
+                                    : "") +
+                                Math.floor(
+                                    ((scrubbing
+                                        ? sliderProgress
+                                        : data.spotify_player_data
+                                              .progress_ms) /
+                                        1000) %
+                                        60
+                                )
                         );
-                    }
-                    setPlaybackProgressString(
-                        Math.floor(
-                            (scrubbing
+                        setTrackLength(
+                            data.spotify_player_data.item.duration_ms
+                        );
+                        setPlaybackPercent(
+                            ((scrubbing
                                 ? sliderProgress
                                 : data.spotify_player_data.progress_ms) /
-                                1000 /
-                                60
-                        ) +
-                            ":" +
-                            (Math.floor(
-                                ((scrubbing
-                                    ? sliderProgress
-                                    : data.spotify_player_data.progress_ms) /
-                                    1000) %
-                                    60
-                            ) < 10
-                                ? "0"
-                                : "") +
-                            Math.floor(
-                                ((scrubbing
-                                    ? sliderProgress
-                                    : data.spotify_player_data.progress_ms) /
-                                    1000) %
-                                    60
-                            )
-                    );
-                    setTrackLength(data.spotify_player_data.item.duration_ms);
-                    setPlaybackPercent(
-                        ((scrubbing
-                            ? sliderProgress
-                            : data.spotify_player_data.progress_ms) /
-                            data.spotify_player_data.item.duration_ms) *
-                            95 +
-                            "%"
-                    );
-                    setAlbumCoverURL(
-                        data.spotify_player_data.item.album.images[0].url
-                    );
-                    setTotalTracks(
-                        data.spotify_player_data.item.album.total_tracks
-                    );
-                    setTrackNumber(data.spotify_player_data.item.track_number);
-                    setSongTitle(data.spotify_player_data.item.name);
-                    setAlbumTitle(data.spotify_player_data.item.album.name);
-                    setArtist(data.spotify_player_data.item.artists[0].name);
-                    setReleaseDate(
-                        data.spotify_player_data.item.album.release_date
-                    );
-                    setTracklist(data.spotify_album_data.tracks.items);
-                    setAlbumReviews(data.album_reviews);
-                    setSongsWithData(data.songs_with_data);
-                    if ($("#quick-summary-input").val() === "") {
-                        $("#quick-summary-input").val(
-                            data.database_data.quickSummary
+                                data.spotify_player_data.item.duration_ms) *
+                                95 +
+                                "%"
                         );
-                    }
-                    if ($("#review-input").val() === "") {
-                        $("#review-input").val(data.database_data.review);
-                    }
-                    if (notes.length === 0) {
-                        data.database_data.notes.map((note) =>
-                            setNotes([...notes, note])
+                        setAlbumCoverURL(
+                            data.spotify_player_data.item.album.images[0].url
                         );
+                        setTotalTracks(
+                            data.spotify_player_data.item.album.total_tracks
+                        );
+                        setTrackNumber(
+                            data.spotify_player_data.item.track_number
+                        );
+                        setSongTitle(data.spotify_player_data.item.name);
+                        setAlbumTitle(data.spotify_player_data.item.album.name);
+                        setArtist(
+                            data.spotify_player_data.item.artists[0].name
+                        );
+                        setReleaseDate(
+                            data.spotify_player_data.item.album.release_date
+                        );
+                        setTracklist(data.spotify_album_data.tracks.items);
+                        setAlbumReviews(data.album_reviews);
+                        setSongsWithData(data.songs_with_data);
+                        if ($("#quick-summary-input").val() === "") {
+                            $("#quick-summary-input").val(
+                                data.database_data.quickSummary
+                            );
+                        }
+                        if ($("#review-input").val() === "") {
+                            $("#review-input").val(data.database_data.review);
+                        }
+                        if (notes.length === 0) {
+                            data.database_data.notes.map((note) =>
+                                setNotes([...notes, note])
+                            );
+                        }
+                    } catch (e) {
+                        console.log(e);
                     }
                 });
         }
