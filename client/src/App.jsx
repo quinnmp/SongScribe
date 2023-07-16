@@ -281,7 +281,7 @@ function App() {
     return (
         <>
             <div className="container">
-                <ul className="nav nav-tabs" id="myTab" role="tablist">
+                <ul className="nav nav-tabs mt-5" id="myTab" role="tablist">
                     <li className="nav-item" role="presentation">
                         <button
                             className="nav-link active"
@@ -346,7 +346,7 @@ function App() {
                                     />
                                 ))}
                             </div>
-                            <div className="col-9">
+                            <div className="col-9 px-5">
                                 <div className="row" id="add-note-spacer">
                                     <div className="col-1"></div>
                                     <div
@@ -525,9 +525,11 @@ function App() {
                                     <div className="col-1">
                                         <h2 key={i}>{i + 1}.</h2>
                                     </div>
+                                    <div className="vr"></div>
                                     <div className="col-5">
                                         <h2 key={i}>{track.name}</h2>
                                     </div>
+                                    <div className="vr"></div>
                                     <div className="col-5">
                                         {songsWithData.includes(track.id) && (
                                             <h2 key={i}>
@@ -542,6 +544,7 @@ function App() {
                                             </h2>
                                         )}
                                     </div>
+                                    <div className="vr"></div>
                                     <div className="col-1">
                                         {songsWithData.includes(track.id) && (
                                             <>
@@ -577,6 +580,7 @@ function App() {
                                 </div>
                             </>
                         ))}
+                        <hr className="mx-3 mb-5" />
                     </div>
                 </div>
             </div>

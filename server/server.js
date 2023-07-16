@@ -193,7 +193,7 @@ app.get("/api", async (req, res) => {
         }
 
         let trackIDArray = [];
-        if (albumData) {
+        if (albumData.tracks) {
             albumData.tracks.items.map((track) => {
                 trackIDArray.push(track.id);
             });

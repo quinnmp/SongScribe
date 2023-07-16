@@ -2,10 +2,15 @@ body {
     background: #191a19;
 }
 
-hr {
+hr,
+.vr {
     border: 1px solid #d8e9a8;
     border-radius: 10px;
     opacity: 100%;
+}
+
+.vr {
+    padding: 0;
 }
 
 h1,
@@ -29,6 +34,28 @@ label {
 
 #album-page-cover {
     max-width: 25%;
+}
+
+.nav-tabs {
+    border-color: #1e5128;
+    border-bottom-width: 3px;
+}
+
+.nav-link.active {
+    color: #d8e9a8 !important;
+    background-color: #1e5128 !important;
+    border-color: #1e5128 !important;
+}
+
+.nav-link {
+    color: #d8e9a8;
+    border-width: 3px !important;
+}
+
+.nav-link:hover {
+    color: #b0be89;
+    border-color: #1e5128 !important;
+    border-width: 3px !important;
 }
 
 .timestamp:hover {
