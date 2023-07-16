@@ -5,6 +5,7 @@ import EditNoteModal from "./components/EditNoteModal.jsx";
 import SidebarNote from "./components/SidebarNote.jsx";
 import NavBar from "./components/NavBar.jsx";
 import NoteArea from "./components/NoteArea.jsx";
+import PlaybackBar from "./components/PlaybackBar.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -331,51 +332,13 @@ function App() {
                                     addNoteTimestamp={setNoteTimeStamp}
                                 />
                                 <div className="row">
-                                    <div className="col-md-1 col-2 px-1 py-0">
-                                        <h3>0:00</h3>
-                                    </div>
-                                    <div
-                                        className="col-md-10 col-8"
-                                        style={{ position: "relative" }}
-                                    >
-                                        <h3
-                                            style={{
-                                                left:
-                                                    (playbackProgress /
-                                                        trackLength) *
-                                                    ($(".form-range").width() -
-                                                        8 -
-                                                        8),
-                                                top: "60%",
-                                                position: "absolute",
-                                            }}
-                                        >
-                                            {playbackProgressString}
-                                        </h3>
-                                        <input
-                                            type="range"
-                                            className="form-range"
-                                            min="0"
-                                            max={trackLength}
-                                            value={playbackProgress}
-                                        ></input>
-                                    </div>
-                                    <div className="col-md-1 col-2 px-1 py-0 text-end">
-                                        <h3>
-                                            {Math.floor(
-                                                trackLength / 1000 / 60
-                                            )}
-                                            :
-                                            {Math.floor(
-                                                (trackLength / 1000) % 60
-                                            ) < 10
-                                                ? "0"
-                                                : ""}
-                                            {Math.floor(
-                                                (trackLength / 1000) % 60
-                                            )}
-                                        </h3>
-                                    </div>
+                                    <PlaybackBar
+                                        playbackProgress={playbackProgress}
+                                        trackLength={trackLength}
+                                        playbackProgressString={
+                                            playbackProgressString
+                                        }
+                                    />
                                     <div className="py-5 px-md-5 px-sm-1">
                                         <label
                                             htmlFor="quick-summary-input"
