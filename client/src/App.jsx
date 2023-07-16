@@ -320,7 +320,7 @@ function App() {
                         tabIndex="0"
                     >
                         <div className="row mt-5">
-                            <div className="col-3">
+                            <div className="col-3 word-wrap">
                                 <AlbumSidebar
                                     albumCoverURL={albumCoverURL}
                                     trackNumber={trackNumber}
@@ -346,11 +346,11 @@ function App() {
                                     />
                                 ))}
                             </div>
-                            <div className="col-9 px-5">
+                            <div className="col-9 px-md-5 px-sm-3">
                                 <div className="row" id="add-note-spacer">
-                                    <div className="col-1"></div>
+                                    <div className="col-md-1 col-2"></div>
                                     <div
-                                        className="col-10 align-self-center"
+                                        className="col-md-10 col-8 align-self-center"
                                         style={{ position: "relative" }}
                                     >
                                         {notes.map((note) => (
@@ -363,9 +363,14 @@ function App() {
                                                     data-bs-title={note.note}
                                                     data-bs-custom-class="custom-tooltip"
                                                     style={{
-                                                        left: timestampToPlaybackPercent(
-                                                            note.timestamp
-                                                        ),
+                                                        left:
+                                                            (playbackProgress /
+                                                                trackLength) *
+                                                            ($(
+                                                                ".form-range"
+                                                            ).width() -
+                                                                8 -
+                                                                8),
                                                         top: "5%",
                                                         position: "absolute",
                                                     }}
@@ -402,7 +407,12 @@ function App() {
                                             type="button"
                                             className="btn add-note-button"
                                             style={{
-                                                left: playbackPercent,
+                                                left:
+                                                    (playbackProgress /
+                                                        trackLength) *
+                                                    ($(".form-range").width() -
+                                                        8 -
+                                                        8),
                                                 top: "5%",
                                                 position: "absolute",
                                             }}
@@ -422,19 +432,24 @@ function App() {
                                             </svg>
                                         </button>
                                     </div>
-                                    <div className="col-1"></div>
+                                    <div className="col-md-1 col-2"></div>
                                 </div>
                                 <div className="row">
-                                    <div className="col-1">
+                                    <div className="col-md-1 col-2 px-1 py-0">
                                         <h3>0:00</h3>
                                     </div>
                                     <div
-                                        className="col-10"
+                                        className="col-md-10 col-8"
                                         style={{ position: "relative" }}
                                     >
                                         <h3
                                             style={{
-                                                left: playbackPercent,
+                                                left:
+                                                    (playbackProgress /
+                                                        trackLength) *
+                                                    ($(".form-range").width() -
+                                                        8 -
+                                                        8),
                                                 top: "60%",
                                                 position: "absolute",
                                             }}
@@ -449,7 +464,7 @@ function App() {
                                             value={playbackProgress}
                                         ></input>
                                     </div>
-                                    <div className="col-1 text-end">
+                                    <div className="col-md-1 col-2 px-1 py-0 text-end">
                                         <h3>
                                             {Math.floor(
                                                 trackLength / 1000 / 60
@@ -465,12 +480,14 @@ function App() {
                                             )}
                                         </h3>
                                     </div>
-                                    <div className="p-5">
+                                    <div className="py-5 px-md-5 px-sm-1">
                                         <label
                                             htmlFor="quick-summary-input"
-                                            className="form-label mt-5"
+                                            className="form-label mt-md-3 mt-0"
                                         >
-                                            <h2>Quick summary</h2>
+                                            <h2 className="text-start">
+                                                Quick summary
+                                            </h2>
                                         </label>
                                         <input
                                             type="text"
@@ -480,7 +497,7 @@ function App() {
                                         ></input>
                                         <label
                                             htmlFor="review-input"
-                                            className="form-label mt-5"
+                                            className="form-label mt-md-5 mt-2"
                                         >
                                             <h2>Review</h2>
                                         </label>

@@ -129,6 +129,11 @@ label {
     border: 0px;
 }
 
+.word-wrap {
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
 #add-note-spacer {
     height: 64px;
 }

@@ -188,15 +188,19 @@ app.get("/api", async (req, res) => {
         const userData = await getUserData();
         const playerData = await getPlayerState();
         let albumData = {};
-        if (playerData.item) {
-            albumData = await getAlbumData(playerData.item.album.id);
+        if (playerData) {
+            if (playerData.item) {
+                albumData = await getAlbumData(playerData.item.album.id);
+            }
         }
 
         let trackIDArray = [];
-        if (albumData.tracks) {
-            albumData.tracks.items.map((track) => {
-                trackIDArray.push(track.id);
-            });
+        if (albumData) {
+            if (albumData.tracks) {
+                albumData.tracks.items.map((track) => {
+                    trackIDArray.push(track.id);
+                });
+            }
         }
 
         let databaseData = {
