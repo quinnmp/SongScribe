@@ -6,6 +6,7 @@ import SidebarNote from "./components/SidebarNote.jsx";
 import NavBar from "./components/NavBar.jsx";
 import NoteArea from "./components/NoteArea.jsx";
 import PlaybackBar from "./components/PlaybackBar.jsx";
+import SongNoteArea from "./components/SongNoteArea.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -284,9 +285,9 @@ function App() {
                 <div className="tab-content" id="myTabContent">
                     <div
                         className="tab-pane fade show active"
-                        id="home-tab-pane"
+                        id="song-tab-pane"
                         role="tabpanel"
-                        aria-labelledby="home-tab"
+                        aria-labelledby="song-tab"
                         tabIndex="0"
                     >
                         <div className="row mt-5">
@@ -339,50 +340,16 @@ function App() {
                                             playbackProgressString
                                         }
                                     />
-                                    <div className="py-5 px-md-5 px-sm-1">
-                                        <label
-                                            htmlFor="quick-summary-input"
-                                            className="form-label mt-md-3 mt-0"
-                                        >
-                                            <h2 className="text-start">
-                                                Quick summary
-                                            </h2>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            id="quick-summary-input"
-                                            name="quick-summary"
-                                        ></input>
-                                        <label
-                                            htmlFor="review-input"
-                                            className="form-label mt-md-5 mt-2"
-                                        >
-                                            <h2>Review</h2>
-                                        </label>
-                                        <textarea
-                                            className="form-control"
-                                            id="review-input"
-                                            rows="10"
-                                            name="review"
-                                        ></textarea>
-                                        <button
-                                            type="button"
-                                            className="btn btn-primary mt-3"
-                                            id="save-song-data"
-                                        >
-                                            Save
-                                        </button>
-                                    </div>
+                                    <SongNoteArea />
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div
                         className="tab-pane fade"
-                        id="profile-tab-pane"
+                        id="album-tab-pane"
                         role="tabpanel"
-                        aria-labelledby="profile-tab"
+                        aria-labelledby="album-tab"
                         tabIndex="0"
                     >
                         <img

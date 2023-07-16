@@ -5,12 +5,12 @@ function NavBar() {
                 <li className="nav-item" role="presentation">
                     <button
                         className="nav-link active"
-                        id="home-tab"
+                        id="song-tab"
                         data-bs-toggle="tab"
-                        data-bs-target="#home-tab-pane"
+                        data-bs-target="#song-tab-pane"
                         type="button"
                         role="tab"
-                        aria-controls="home-tab-pane"
+                        aria-controls="song-tab-pane"
                         aria-selected="true"
                     >
                         Song
@@ -19,12 +19,12 @@ function NavBar() {
                 <li className="nav-item" role="presentation">
                     <button
                         className="nav-link"
-                        id="profile-tab"
+                        id="album-tab"
                         data-bs-toggle="tab"
-                        data-bs-target="#profile-tab-pane"
+                        data-bs-target="#album-tab-pane"
                         type="button"
                         role="tab"
-                        aria-controls="profile-tab-pane"
+                        aria-controls="album-tab-pane"
                         aria-selected="false"
                     >
                         Album
