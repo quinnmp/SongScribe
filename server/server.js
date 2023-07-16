@@ -212,8 +212,10 @@ app.get("/api", async (req, res) => {
         let albumReviews = [];
         let songsWithData = [];
 
-        if (playerData.item) {
-            playingSongID = playerData.item.id;
+        if (playerData) {
+            if (playerData.item) {
+                playingSongID = playerData.item.id;
+            }
         }
         await userScribeArray.forEach((scribe) => {
             if (scribe.id === userData.id) {
