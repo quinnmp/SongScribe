@@ -34,6 +34,7 @@ function App() {
     useEffect(() => {
         let sliderProgress = 0;
         function getPlaybackState() {
+            console.log("Getting Playback State");
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
@@ -45,11 +46,17 @@ function App() {
                 .then((data) => {
                     try {
                         if (data.spotify_player_data.item.id != songID) {
+                            setScrubbing(false);
                             setNotes([]);
                             setArtists([]);
                             setAlbumArtists([]);
                             $("#quick-summary-input").val("");
                             $("#review-input").val("");
+                            if (notes.length === 0) {
+                                data.database_data.notes.map((note) =>
+                                    setNotes([...notes, note])
+                                );
+                            }
                         }
                         setSongID(data.spotify_player_data.item.id);
                         if (
@@ -148,11 +155,6 @@ function App() {
                         if ($("#review-input").val() === "") {
                             $("#review-input").val(data.database_data.review);
                         }
-                        if (notes.length === 0) {
-                            data.database_data.notes.map((note) =>
-                                setNotes([...notes, note])
-                            );
-                        }
                     } catch (e) {
                         console.log(e);
                     }
@@ -189,6 +191,9 @@ function App() {
             $("#noteInterface")
                 .off("shown.bs.modal")
                 .on("shown.bs.modal", function () {
+                    $("#timestampInput").val(
+                        $("#timestampInput").prop("defaultValue")
+                    );
                     $("#noteInput").focus();
                 });
             $(".save-note")
@@ -222,6 +227,7 @@ function App() {
                 .off("keydown")
                 .on("keydown", function (event) {
                     if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
                         $(".save-note").click();
                     }
                 });
@@ -231,6 +237,7 @@ function App() {
                 let textareaID = "#noteInput" + i;
                 $(textareaID).on("keydown", function (event) {
                     if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
                         $(buttonID).click();
                     }
                 });
@@ -291,6 +298,7 @@ function App() {
     }
 
     async function submitNote() {
+        console.log("Submit note");
         const requestOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },

@@ -39,7 +39,7 @@ async function retrieveUserScribes() {
     try {
         userScribeArray = await UserScribe.find({}).exec();
     } catch (e) {
-        console.log(e);
+        console.log(e.response.data);
     }
 }
 
@@ -51,6 +51,10 @@ const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
 
 let accessToken = "";
 let refreshToken = "";
+
+let albumData = "";
+let userData = "";
+let albumID = -1;
 
 let playerData = undefined;
 
@@ -77,8 +81,8 @@ async function getAuth(code) {
             access_token: response.data.access_token,
             refresh_token: response.data.refresh_token,
         };
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
+        console.log(e.response.data);
     }
 }
 
@@ -101,8 +105,8 @@ async function getRefreshedToken(refreshToken) {
             }
         );
         return response.data.access_token;
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
+        console.log(e.response.data);
     }
 }
 
@@ -116,8 +120,8 @@ async function getPlayerState() {
             },
         });
         return response.data;
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
+        console.log(e.response.data);
     }
 }
 
@@ -131,8 +135,8 @@ async function getAlbumData(id) {
             },
         });
         return response.data;
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
+        console.log(e.response.data);
     }
 }
 
@@ -146,8 +150,8 @@ async function getUserData() {
             },
         });
         return response.data;
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
+        console.log(e.response.data);
     }
 }
 
@@ -166,8 +170,8 @@ async function seekToPosition(timeInMS) {
             },
             params: data,
         });
-    } catch (error) {
-        console.log(error.response.data);
+    } catch (e) {
+        console.log(e.response.data);
     }
 }
 
@@ -187,6 +191,7 @@ function makeID(length) {
 }
 
 app.get("/login", function (req, res) {
+    console.log("GET /login");
     var state = makeID(16);
     var scope =
         "user-read-playback-state user-modify-playback-state user-read-private user-read-email";
@@ -204,22 +209,40 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/callback", async function (req, res) {
+    console.log("GET /callback");
     let authData = await getAuth(req.query.code, req.query.state);
-    accessToken = authData.access_token;
-    refreshToken = authData.refresh_token;
+    if (authData) {
+        accessToken = authData.access_token;
+        refreshToken = authData.refresh_token;
+    }
     res.redirect("/api");
 });
 
 app.get("/api", async (req, res) => {
-    if (accessToken == "") {
+    console.log("GET /api");
+    if (accessToken === "") {
+        console.log("No token, retrieving");
         res.redirect("/login");
+        return;
     } else {
         try {
+            console.log("Retrieving database data");
             retrieveUserScribes();
-            const userData = await getUserData();
+            if (userData === "") {
+                console.log("Getting user data");
+                userData = await getUserData();
+            } else {
+                console.log("User data not empty, no update needed");
+            }
+            console.log("Getting player data");
             const playerData = await getPlayerState();
-            let albumData = {};
-            albumData = await getAlbumData(playerData.item.album.id);
+            if (playerData.item.album.id !== albumID) {
+                console.log("Getting album data");
+                albumData = await getAlbumData(playerData.item.album.id);
+                albumID = playerData.item.album.id;
+            } else {
+                console.log("Album has not changed, no update needed");
+            }
 
             let trackIDArray = [];
             albumData.tracks.items.map((track) => {
@@ -263,6 +286,9 @@ app.get("/api", async (req, res) => {
                 })
             );
         } catch (e) {
+            console.log(
+                "Token is expired or something else went wrong in the retrieval process"
+            );
             console.log(e);
             accessToken = await getRefreshedToken(refreshToken);
         }
@@ -279,7 +305,7 @@ app.put("/api", (req, res) => {
 
 app.post("/api", async (req, res) => {
     console.log(req.body);
-    retrieveUserScribes();
+    await retrieveUserScribes();
     const userData = await getUserData();
     let containsUser = false;
     let containsSong = false;
@@ -293,12 +319,15 @@ app.post("/api", async (req, res) => {
             id: userData.id,
             songs: [],
         });
-        userScribe.save();
+        await userScribe.save();
+        await retrieveUserScribes();
     }
     userScribeArray.forEach((scribe) => {
         if (scribe.id === userData.id) {
+            console.log("Account found!");
             scribe.songs.forEach((song) => {
                 if (song.id === req.body.id) {
+                    console.log("Song exists already, updating info");
                     containsSong = true;
                     song.quickSummary = req.body.quickSummary;
                     song.review = req.body.review;
@@ -306,6 +335,7 @@ app.post("/api", async (req, res) => {
                 }
             });
             if (!containsSong) {
+                console.log("Song does not exist, pushing new data");
                 scribe.songs.push({
                     id: req.body.id,
                     quickSummary: req.body.quickSummary,
