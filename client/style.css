@@ -134,6 +134,12 @@ label {
     word-break: break-word;
 }
 
+.artist-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #add-note-spacer {
     height: 64px;
 }

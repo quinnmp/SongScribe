@@ -13,7 +13,17 @@ function AlbumSidebar(props) {
             </h1>
             <h2>{props.songTitle}</h2>
             <h3>{props.albumTitle}</h3>
-            <h3>{props.artist}</h3>
+            {props.artists.map((artist, i) =>
+                i !== props.artists.length - 1 ? (
+                    <h3 key={i} className="d-inline-block">
+                        {artist},&nbsp;
+                    </h3>
+                ) : (
+                    <h3 key={i} className="d-inline-block">
+                        {artist}
+                    </h3>
+                )
+            )}
             <h3>{props.releaseDate}</h3>
         </>
     );

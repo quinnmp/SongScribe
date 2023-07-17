@@ -15,7 +15,15 @@ function AlbumTab(props) {
                     id="album-page-cover"
                 />
                 <h1>{props.albumTitle}</h1>
-                <h1>{props.artist}</h1>
+                <div className="artist-wrapper">
+                    {props.artists.map((artist, i) =>
+                        i !== props.artists.length - 1 ? (
+                            <h1 key={i}>{artist},&nbsp;</h1>
+                        ) : (
+                            <h1 key={i}>{artist}</h1>
+                        )
+                    )}
+                </div>
                 <h1 className="mb-4">{props.releaseDate}</h1>
                 {props.tracklist.map((track, i) => (
                     <>

@@ -50,6 +50,7 @@ const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
 );
 
 let accessToken = "";
+let refreshToken = "";
 
 let playerData = undefined;
 
@@ -59,6 +60,33 @@ async function getAuth(code) {
             grant_type: "authorization_code",
             code: code,
             redirect_uri: "http://localhost:5000/callback",
+        });
+        const tokenURL = "https://accounts.spotify.com/api/token?" + data;
+
+        const response = await axios.post(
+            tokenURL,
+            {},
+            {
+                headers: {
+                    Authorization: `Basic ${authToken}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            }
+        );
+        return {
+            access_token: response.data.access_token,
+            refresh_token: response.data.refresh_token,
+        };
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function getRefreshedToken(refreshToken) {
+    try {
+        const data = qs.stringify({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
         });
         const tokenURL = "https://accounts.spotify.com/api/token?" + data;
 
@@ -176,7 +204,9 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/callback", async function (req, res) {
-    accessToken = await getAuth(req.query.code, req.query.state);
+    let authData = await getAuth(req.query.code, req.query.state);
+    accessToken = authData.access_token;
+    refreshToken = authData.refresh_token;
     res.redirect("/api");
 });
 
@@ -234,6 +264,7 @@ app.get("/api", async (req, res) => {
             );
         } catch (e) {
             console.log(e);
+            accessToken = await getRefreshedToken(refreshToken);
         }
     }
 });
