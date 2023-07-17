@@ -155,6 +155,21 @@ async function getUserData() {
     }
 }
 
+async function getLastPlayedSong() {
+    const apiURL = `https://api.spotify.com/v1/me/player/recently-played`;
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        return response.data.items[0].track;
+    } catch (e) {
+        console.log(e.response.data);
+    }
+}
+
 async function seekToPosition(timeInMS) {
     const apiURL = `https://api.spotify.com/v1/me/player/seek`;
 
@@ -194,7 +209,7 @@ app.get("/login", function (req, res) {
     console.log("GET /login");
     var state = makeID(16);
     var scope =
-        "user-read-playback-state user-modify-playback-state user-read-private user-read-email";
+        "user-read-playback-state user-modify-playback-state user-read-private user-read-email user-read-recently-played";
 
     res.redirect(
         "https://accounts.spotify.com/authorize?" +
@@ -235,7 +250,11 @@ app.get("/api", async (req, res) => {
                 console.log("User data not empty, no update needed");
             }
             console.log("Getting player data");
-            const playerData = await getPlayerState();
+            let playerData = await getPlayerState();
+            if (!playerData.item) {
+                console.log("Bad playerData");
+                playerData = { item: await getLastPlayedSong() };
+            }
             if (playerData.item.album.id !== albumID) {
                 console.log("Getting album data");
                 albumData = await getAlbumData(playerData.item.album.id);
@@ -305,48 +324,53 @@ app.put("/api", (req, res) => {
 
 app.post("/api", async (req, res) => {
     console.log(req.body);
-    await retrieveUserScribes();
-    const userData = await getUserData();
-    let containsUser = false;
-    let containsSong = false;
-    userScribeArray.forEach((scribe) => {
-        if (scribe.id === userData.id) {
-            containsUser = true;
-        }
-    });
-    if (!containsUser) {
-        const userScribe = new UserScribe({
-            id: userData.id,
-            songs: [],
-        });
-        await userScribe.save();
+    if (!req.quickSummary && !req.review && !req.notes) {
+        console.log("Empty note, POST rejected");
+        res.send(JSON.stringify({ status: "failure" }));
+    } else {
         await retrieveUserScribes();
-    }
-    userScribeArray.forEach((scribe) => {
-        if (scribe.id === userData.id) {
-            console.log("Account found!");
-            scribe.songs.forEach((song) => {
-                if (song.id === req.body.id) {
-                    console.log("Song exists already, updating info");
-                    containsSong = true;
-                    song.quickSummary = req.body.quickSummary;
-                    song.review = req.body.review;
-                    song.notes = req.body.notes;
-                }
-            });
-            if (!containsSong) {
-                console.log("Song does not exist, pushing new data");
-                scribe.songs.push({
-                    id: req.body.id,
-                    quickSummary: req.body.quickSummary,
-                    review: req.body.review,
-                    notes: req.body.notes,
-                });
+        const userData = await getUserData();
+        let containsUser = false;
+        let containsSong = false;
+        userScribeArray.forEach((scribe) => {
+            if (scribe.id === userData.id) {
+                containsUser = true;
             }
-            scribe.save();
+        });
+        if (!containsUser) {
+            const userScribe = new UserScribe({
+                id: userData.id,
+                songs: [],
+            });
+            await userScribe.save();
+            await retrieveUserScribes();
         }
-    });
-    res.send(JSON.stringify({ status: "success" }));
+        userScribeArray.forEach(async (scribe) => {
+            if (scribe.id === userData.id) {
+                console.log("Account found!");
+                scribe.songs.forEach((song) => {
+                    if (song.id === req.body.id) {
+                        console.log("Song exists already, updating info");
+                        containsSong = true;
+                        song.quickSummary = req.body.quickSummary;
+                        song.review = req.body.review;
+                        song.notes = req.body.notes;
+                    }
+                });
+                if (!containsSong) {
+                    console.log("Song does not exist, pushing new data");
+                    scribe.songs.push({
+                        id: req.body.id,
+                        quickSummary: req.body.quickSummary,
+                        review: req.body.review,
+                        notes: req.body.notes,
+                    });
+                }
+                await scribe.save();
+            }
+        });
+        res.send(JSON.stringify({ status: "success" }));
+    }
 });
 
 app.listen(5000, () => {

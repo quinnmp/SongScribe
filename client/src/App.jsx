@@ -43,9 +43,10 @@ function App() {
                 .then((response) => {
                     return response.json();
                 })
-                .then((data) => {
+                .then(async (data) => {
                     try {
                         if (data.spotify_player_data.item.id != songID) {
+                            await submitNote();
                             setScrubbing(false);
                             setNotes([]);
                             setArtists([]);
@@ -53,9 +54,7 @@ function App() {
                             $("#quick-summary-input").val("");
                             $("#review-input").val("");
                             if (notes.length === 0) {
-                                data.database_data.notes.map((note) =>
-                                    setNotes([...notes, note])
-                                );
+                                setNotes(data.database_data.notes);
                             }
                         }
                         setSongID(data.spotify_player_data.item.id);
@@ -67,49 +66,55 @@ function App() {
                         ) {
                             setScrubbing(false);
                         }
-                        if (!scrubbing) {
+                        if (
+                            !scrubbing &&
+                            data.spotify_player_data.progress_ms
+                        ) {
                             setPlaybackProgress(
                                 data.spotify_player_data.progress_ms
                             );
                         }
-                        setPlaybackProgressString(
-                            Math.floor(
-                                (scrubbing
+                        if (data.spotify_player_data.progress_ms) {
+                            setPlaybackPercent(
+                                ((scrubbing
                                     ? sliderProgress
                                     : data.spotify_player_data.progress_ms) /
-                                    1000 /
-                                    60
-                            ) +
-                                ":" +
-                                (Math.floor(
-                                    ((scrubbing
-                                        ? sliderProgress
-                                        : data.spotify_player_data
-                                              .progress_ms) /
-                                        1000) %
-                                        60
-                                ) < 10
-                                    ? "0"
-                                    : "") +
+                                    data.spotify_player_data.item.duration_ms) *
+                                    95 +
+                                    "%"
+                            );
+                            setPlaybackProgressString(
                                 Math.floor(
-                                    ((scrubbing
+                                    (scrubbing
                                         ? sliderProgress
                                         : data.spotify_player_data
                                               .progress_ms) /
-                                        1000) %
+                                        1000 /
                                         60
-                                )
-                        );
+                                ) +
+                                    ":" +
+                                    (Math.floor(
+                                        ((scrubbing
+                                            ? sliderProgress
+                                            : data.spotify_player_data
+                                                  .progress_ms) /
+                                            1000) %
+                                            60
+                                    ) < 10
+                                        ? "0"
+                                        : "") +
+                                    Math.floor(
+                                        ((scrubbing
+                                            ? sliderProgress
+                                            : data.spotify_player_data
+                                                  .progress_ms) /
+                                            1000) %
+                                            60
+                                    )
+                            );
+                        }
                         setTrackLength(
                             data.spotify_player_data.item.duration_ms
-                        );
-                        setPlaybackPercent(
-                            ((scrubbing
-                                ? sliderProgress
-                                : data.spotify_player_data.progress_ms) /
-                                data.spotify_player_data.item.duration_ms) *
-                                95 +
-                                "%"
                         );
                         setAlbumCoverURL(
                             data.spotify_player_data.item.album.images[0].url
