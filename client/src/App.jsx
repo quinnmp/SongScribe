@@ -21,13 +21,14 @@ function App() {
     const [trackNumber, setTrackNumber] = useState(-1);
     const [songTitle, setSongTitle] = useState("");
     const [albumTitle, setAlbumTitle] = useState("");
-    const [artist, setArtist] = useState("");
+    const [artists, setArtists] = useState([]);
     const [releaseDate, setReleaseDate] = useState("");
     const [notes, setNotes] = useState([]);
     const [scrubbing, setScrubbing] = useState(false);
     const [uploadingNote, setUploadingNote] = useState(false);
     const [tracklist, setTracklist] = useState([]);
     const [albumReviews, setAlbumReviews] = useState([]);
+    const [albumArtists, setAlbumArtists] = useState([]);
     const [songsWithData, setSongsWithData] = useState([]);
 
     useEffect(() => {
@@ -45,6 +46,8 @@ function App() {
                     try {
                         if (data.spotify_player_data.item.id != songID) {
                             setNotes([]);
+                            setArtists([]);
+                            setAlbumArtists([]);
                             $("#quick-summary-input").val("");
                             $("#review-input").val("");
                         }
@@ -112,9 +115,25 @@ function App() {
                         );
                         setSongTitle(data.spotify_player_data.item.name);
                         setAlbumTitle(data.spotify_player_data.item.album.name);
-                        setArtist(
-                            data.spotify_player_data.item.artists[0].name
-                        );
+
+                        if (artists.length === 0) {
+                            let tempArtists = [];
+                            data.spotify_player_data.item.artists.map(
+                                (artist) => {
+                                    tempArtists.push(artist.name);
+                                }
+                            );
+                            setArtists(tempArtists);
+                        }
+
+                        if (albumArtists.length === 0) {
+                            let tempAlbumArtists = [];
+                            data.spotify_album_data.artists.map((artist) => {
+                                tempAlbumArtists.push(artist.name);
+                            });
+                            setAlbumArtists(tempAlbumArtists);
+                        }
+
                         setReleaseDate(
                             data.spotify_player_data.item.album.release_date
                         );
@@ -202,7 +221,7 @@ function App() {
             $("#noteInput")
                 .off("keydown")
                 .on("keydown", function (event) {
-                    if (event.key === "Enter") {
+                    if (event.key === "Enter" && !event.shiftKey) {
                         $(".save-note").click();
                     }
                 });
@@ -211,7 +230,7 @@ function App() {
                 let formID = "#note-form" + i;
                 let textareaID = "#noteInput" + i;
                 $(textareaID).on("keydown", function (event) {
-                    if (event.key === "Enter") {
+                    if (event.key === "Enter" && !event.shiftKey) {
                         $(buttonID).click();
                     }
                 });
@@ -231,15 +250,18 @@ function App() {
                                 ? "(no note)"
                                 : noteData[2].value
                         );
-                        await setNotes(notes.splice(i, 0, editedNote));
-                        await setNotes(notes.splice(i, 1));
+                        console.log(notes);
+                        let tempNotesArray = notes;
+                        await tempNotesArray.splice(i, 0, editedNote);
+                        await tempNotesArray.splice(i + 1, 1);
+                        await setNotes(tempNotesArray);
                     });
             });
         });
         return () => {
             clearInterval(interval);
         };
-    }, [notes, scrubbing, uploadingNote]);
+    }, [notes, scrubbing, uploadingNote, artists]);
 
     const debounce = (func, wait) => {
         let timeout;
@@ -265,7 +287,7 @@ function App() {
             .then((response) => {
                 return response.json();
             })
-            .then((data) => console.log(data));
+            .then((data) => data);
     }
 
     async function submitNote() {
@@ -316,7 +338,7 @@ function App() {
                                     totalTracks={totalTracks}
                                     songTitle={songTitle}
                                     albumTitle={albumTitle}
-                                    artist={artist}
+                                    artists={artists}
                                     releaseDate={releaseDate}
                                 />
                                 {notes.map((note, i) => (
@@ -366,7 +388,7 @@ function App() {
                     <AlbumTab
                         albumCoverURL={albumCoverURL}
                         albumTitle={albumTitle}
-                        artist={artist}
+                        artists={albumArtists}
                         releaseDate={releaseDate}
                         tracklist={tracklist}
                         songsWithData={songsWithData}
