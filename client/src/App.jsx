@@ -45,36 +45,36 @@ function App() {
                 })
                 .then(async (data) => {
                     try {
-                        if (data.spotify_player_data.item.id != songID) {
-                            await submitNote();
-                            setScrubbing(false);
-                            setNotes([]);
-                            setArtists([]);
-                            setAlbumArtists([]);
-                            $("#quick-summary-input").val("");
-                            $("#review-input").val("");
-                            if (notes.length === 0) {
-                                setNotes(data.database_data.notes);
-                            }
-                        }
-                        setSongID(data.spotify_player_data.item.id);
-                        if (
-                            Math.abs(
-                                data.spotify_player_data.progress_ms -
-                                    sliderProgress
-                            ) < 2000
-                        ) {
-                            setScrubbing(false);
-                        }
-                        if (
-                            !scrubbing &&
-                            data.spotify_player_data.progress_ms
-                        ) {
-                            setPlaybackProgress(
-                                data.spotify_player_data.progress_ms
-                            );
-                        }
                         if (data.spotify_player_data.progress_ms) {
+                            if (data.spotify_player_data.item.id != songID) {
+                                await submitNote();
+                                setScrubbing(false);
+                                setNotes([]);
+                                setArtists([]);
+                                setAlbumArtists([]);
+                                $("#quick-summary-input").val("");
+                                $("#review-input").val("");
+                                if (notes.length === 0) {
+                                    setNotes(data.database_data.notes);
+                                }
+                            }
+                            setSongID(data.spotify_player_data.item.id);
+                            if (
+                                Math.abs(
+                                    data.spotify_player_data.progress_ms -
+                                        sliderProgress
+                                ) < 2000
+                            ) {
+                                setScrubbing(false);
+                            }
+                            if (
+                                !scrubbing &&
+                                data.spotify_player_data.progress_ms
+                            ) {
+                                setPlaybackProgress(
+                                    data.spotify_player_data.progress_ms
+                                );
+                            }
                             setPlaybackPercent(
                                 ((scrubbing
                                     ? sliderProgress
@@ -112,53 +112,60 @@ function App() {
                                             60
                                     )
                             );
-                        }
-                        setTrackLength(
-                            data.spotify_player_data.item.duration_ms
-                        );
-                        setAlbumCoverURL(
-                            data.spotify_player_data.item.album.images[0].url
-                        );
-                        setTotalTracks(
-                            data.spotify_player_data.item.album.total_tracks
-                        );
-                        setTrackNumber(
-                            data.spotify_player_data.item.track_number
-                        );
-                        setSongTitle(data.spotify_player_data.item.name);
-                        setAlbumTitle(data.spotify_player_data.item.album.name);
-
-                        if (artists.length === 0) {
-                            let tempArtists = [];
-                            data.spotify_player_data.item.artists.map(
-                                (artist) => {
-                                    tempArtists.push(artist.name);
-                                }
+                            setTrackLength(
+                                data.spotify_player_data.item.duration_ms
                             );
-                            setArtists(tempArtists);
-                        }
-
-                        if (albumArtists.length === 0) {
-                            let tempAlbumArtists = [];
-                            data.spotify_album_data.artists.map((artist) => {
-                                tempAlbumArtists.push(artist.name);
-                            });
-                            setAlbumArtists(tempAlbumArtists);
-                        }
-
-                        setReleaseDate(
-                            data.spotify_player_data.item.album.release_date
-                        );
-                        setTracklist(data.spotify_album_data.tracks.items);
-                        setAlbumReviews(data.album_reviews);
-                        setSongsWithData(data.songs_with_data);
-                        if ($("#quick-summary-input").val() === "") {
-                            $("#quick-summary-input").val(
-                                data.database_data.quickSummary
+                            setAlbumCoverURL(
+                                data.spotify_player_data.item.album.images[0]
+                                    .url
                             );
-                        }
-                        if ($("#review-input").val() === "") {
-                            $("#review-input").val(data.database_data.review);
+                            setTotalTracks(
+                                data.spotify_player_data.item.album.total_tracks
+                            );
+                            setTrackNumber(
+                                data.spotify_player_data.item.track_number
+                            );
+                            setSongTitle(data.spotify_player_data.item.name);
+                            setAlbumTitle(
+                                data.spotify_player_data.item.album.name
+                            );
+
+                            if (artists.length === 0) {
+                                let tempArtists = [];
+                                data.spotify_player_data.item.artists.map(
+                                    (artist) => {
+                                        tempArtists.push(artist.name);
+                                    }
+                                );
+                                setArtists(tempArtists);
+                            }
+
+                            if (albumArtists.length === 0) {
+                                let tempAlbumArtists = [];
+                                data.spotify_album_data.artists.map(
+                                    (artist) => {
+                                        tempAlbumArtists.push(artist.name);
+                                    }
+                                );
+                                setAlbumArtists(tempAlbumArtists);
+                            }
+
+                            setReleaseDate(
+                                data.spotify_player_data.item.album.release_date
+                            );
+                            setTracklist(data.spotify_album_data.tracks.items);
+                            setAlbumReviews(data.album_reviews);
+                            setSongsWithData(data.songs_with_data);
+                            if ($("#quick-summary-input").val() === "") {
+                                $("#quick-summary-input").val(
+                                    data.database_data.quickSummary
+                                );
+                            }
+                            if ($("#review-input").val() === "") {
+                                $("#review-input").val(
+                                    data.database_data.review
+                                );
+                            }
                         }
                     } catch (e) {
                         console.log(e);

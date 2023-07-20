@@ -54,9 +54,8 @@ let refreshToken = "";
 
 let albumData = "";
 let userData = "";
+let playerData = "";
 let albumID = -1;
-
-let playerData = undefined;
 
 async function getAuth(code) {
     try {
@@ -119,7 +118,12 @@ async function getPlayerState() {
                 Authorization: `Bearer ${accessToken}`,
             },
         });
-        return response.data;
+        if (response.data.progress_ms) {
+            return response.data;
+        } else {
+            console.log("Bad playerData, returning stale data");
+            return playerData;
+        }
     } catch (e) {
         console.log(e.response.data);
     }
@@ -150,21 +154,6 @@ async function getUserData() {
             },
         });
         return response.data;
-    } catch (e) {
-        console.log(e.response.data);
-    }
-}
-
-async function getLastPlayedSong() {
-    const apiURL = `https://api.spotify.com/v1/me/player/recently-played`;
-
-    try {
-        const response = await axios.get(apiURL, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
-        return response.data.items[0].track;
     } catch (e) {
         console.log(e.response.data);
     }
@@ -250,11 +239,7 @@ app.get("/api", async (req, res) => {
                 console.log("User data not empty, no update needed");
             }
             console.log("Getting player data");
-            let playerData = await getPlayerState();
-            if (!playerData.item) {
-                console.log("Bad playerData");
-                playerData = { item: await getLastPlayedSong() };
-            }
+            playerData = await getPlayerState();
             if (playerData.item.album.id !== albumID) {
                 console.log("Getting album data");
                 albumData = await getAlbumData(playerData.item.album.id);
