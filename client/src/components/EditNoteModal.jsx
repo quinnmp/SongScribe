@@ -1,6 +1,22 @@
 function EditNoteModal(props) {
     let id = "editNoteInterface" + props.index;
     let textareaID = "#noteInput" + props.index;
+    function subtractFromTimestamp(timestamp) {
+        let timestampArray = timestamp.split(":");
+        if (timestampArray[1] == "00") {
+            timestampArray[0] = timestampArray[0] - 1;
+            timestampArray[1] = 59;
+        } else {
+            timestampArray[1] = timestampArray[1] - 1;
+        }
+        return (
+            timestampArray[0] +
+            ":" +
+            (timestampArray[1].toString().length == 1
+                ? "0" + timestampArray[1]
+                : timestampArray[1])
+        );
+    }
     return (
         <>
             <div
@@ -38,11 +54,23 @@ function EditNoteModal(props) {
                                 </label>
                                 <input
                                     type="text"
-                                    className="form-control"
+                                    className="form-control d-inline-block timestampInput"
                                     id={"timestampInput" + props.index}
                                     name="timestamp"
                                     defaultValue={props.timestamp}
                                 ></input>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary d-inline-block"
+                                    onClick={() =>
+                                        $(
+                                            "#timestampInput" +
+                                                props.index.toString()
+                                        ).val(subtractFromTimestamp(this.val()))
+                                    }
+                                >
+                                    -1
+                                </button>
                                 <label
                                     htmlFor={"lengthInput" + props.index}
                                     className="form-label mt-2"

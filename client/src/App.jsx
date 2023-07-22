@@ -44,7 +44,6 @@ function App() {
                     return response.json();
                 })
                 .then(async (data) => {
-                    console.log(data);
                     if (data.uri) {
                         window.location.replace(data.uri);
                     } else {

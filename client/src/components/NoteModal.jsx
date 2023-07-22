@@ -1,4 +1,21 @@
 function NoteModal(props) {
+    function subtractFromTimestamp(timestamp) {
+        let timestampArray = timestamp.split(":");
+        if (timestampArray[1] == "00") {
+            timestampArray[0] = timestampArray[0] - 1;
+            timestampArray[1] = 59;
+        } else {
+            timestampArray[1] = timestampArray[1] - 1;
+        }
+        return (
+            timestampArray[0] +
+            ":" +
+            (timestampArray[1].toString().length == 1
+                ? "0" + timestampArray[1]
+                : timestampArray[1])
+        );
+    }
+
     return (
         <>
             <div
@@ -36,11 +53,22 @@ function NoteModal(props) {
                                 </label>
                                 <input
                                     type="text"
-                                    className="form-control"
+                                    className="form-control d-inline-block timestampInput"
                                     id="timestampInput"
                                     name="timestamp"
                                     defaultValue={props.tempTimeStamp}
                                 ></input>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary d-inline-block"
+                                    onClick={() =>
+                                        $("#timestampInput").val(
+                                            subtractFromTimestamp(this.val())
+                                        )
+                                    }
+                                >
+                                    -1
+                                </button>
                                 <label
                                     htmlFor="lengthInput"
                                     className="form-label mt-2"
