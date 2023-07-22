@@ -55,6 +55,7 @@ let refreshToken = "";
 let albumData = "";
 let userData = "";
 let playerData = "";
+let recentNoteData = "";
 let albumID = -1;
 
 async function getAuth(code) {
@@ -103,6 +104,7 @@ async function getRefreshedToken(refreshToken) {
                 },
             }
         );
+        console.log(response);
         return response.data.access_token;
     } catch (e) {
         console.log(e.response.data);
@@ -141,6 +143,39 @@ async function getAlbumData(id) {
         return response.data;
     } catch (e) {
         console.log(e.response.data);
+    }
+}
+
+async function getSongData(id) {
+    const apiURL = `https://api.spotify.com/v1/tracks/` + id;
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        return response.data;
+    } catch (e) {
+        console.log(e.response.data);
+    }
+}
+
+async function getRecentNoteData() {
+    let recentData = [];
+    const reversedUserScribeArray = userScribeArray.slice().reverse();
+
+    for (const scribe of reversedUserScribeArray) {
+        if (scribe.id === userData.id) {
+            for (const song of scribe.songs) {
+                const songData = await getSongData(song.id);
+                recentData.push(songData);
+                if (recentData.length === 5) {
+                    break;
+                }
+            }
+            return recentData;
+        }
     }
 }
 
@@ -225,29 +260,26 @@ app.get("/api", async (req, res) => {
     if (accessToken === "") {
         console.log("No token, retrieving");
         let spotify_auth_uri = await handleAuthURI();
-        console.log(spotify_auth_uri);
         res.send(JSON.stringify({ uri: spotify_auth_uri }));
         return;
     } else {
         try {
             if (!userScribeArray) {
                 console.log("Retrieving database data");
-                retrieveUserScribes();
+                await retrieveUserScribes();
             }
             if (userData === "") {
                 console.log("Getting user data");
                 userData = await getUserData();
-            } else {
-                console.log("User data not empty, no update needed");
+                recentNoteData = await getRecentNoteData();
             }
+
             console.log("Getting player data");
             playerData = await getPlayerState();
             if (playerData.item.album.id !== albumID) {
                 console.log("Getting album data");
                 albumData = await getAlbumData(playerData.item.album.id);
                 albumID = playerData.item.album.id;
-            } else {
-                console.log("Album has not changed, no update needed");
             }
 
             let trackIDArray = [];
@@ -289,6 +321,7 @@ app.get("/api", async (req, res) => {
                     database_data: databaseData,
                     album_reviews: albumReviews,
                     songs_with_data: songsWithData,
+                    recent_notes: recentNoteData,
                 })
             );
         } catch (e) {
@@ -357,6 +390,7 @@ app.post("/api", async (req, res) => {
             }
         });
         await retrieveUserScribes();
+        recentNoteData = await getRecentNoteData();
         res.send(JSON.stringify({ status: "success" }));
     }
 });

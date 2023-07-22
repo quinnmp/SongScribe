@@ -8,6 +8,7 @@ import NoteArea from "./components/NoteArea.jsx";
 import PlaybackBar from "./components/PlaybackBar.jsx";
 import SongNoteArea from "./components/SongNoteArea.jsx";
 import AlbumTab from "./components/AlbumTab.jsx";
+import RecentNote from "./components/RecentNote.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -30,6 +31,7 @@ function App() {
     const [albumReviews, setAlbumReviews] = useState([]);
     const [albumArtists, setAlbumArtists] = useState([]);
     const [songsWithData, setSongsWithData] = useState([]);
+    const [recentData, setRecentData] = useState([]);
 
     useEffect(() => {
         let sliderProgress = 0;
@@ -63,6 +65,7 @@ function App() {
                                         setNotes(data.database_data.notes);
                                     }
                                 }
+                                await setRecentData(data.recent_notes);
                                 setSongID(data.spotify_player_data.item.id);
                                 if (
                                     Math.abs(
@@ -388,6 +391,15 @@ function App() {
                                                 )
                                             )
                                         }
+                                    />
+                                ))}
+                                <h1 className="mt-3">Recent tracks</h1>
+                                {recentData.map((song, i) => (
+                                    <RecentNote
+                                        key={i}
+                                        albumCoverURL={song.album.images[0].url}
+                                        songTitle={song.name}
+                                        artist={song.artists[0].name}
                                     />
                                 ))}
                             </div>
