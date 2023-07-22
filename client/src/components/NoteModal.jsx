@@ -63,7 +63,9 @@ function NoteModal(props) {
                                     className="btn btn-primary d-inline-block"
                                     onClick={() =>
                                         $("#timestampInput").val(
-                                            subtractFromTimestamp(this.val())
+                                            subtractFromTimestamp(
+                                                $("#timestampInput").val()
+                                            )
                                         )
                                     }
                                 >

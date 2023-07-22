@@ -66,7 +66,11 @@ function EditNoteModal(props) {
                                         $(
                                             "#timestampInput" +
                                                 props.index.toString()
-                                        ).val(subtractFromTimestamp(this.val()))
+                                        ).val(
+                                            subtractFromTimestamp(
+                                                $("#timestampInput").val()
+                                            )
+                                        )
                                     }
                                 >
                                     -1
