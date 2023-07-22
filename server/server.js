@@ -34,7 +34,7 @@ const userScribesSchema = new mongoose.Schema({
 
 const UserScribe = mongoose.model("UserScribe", userScribesSchema);
 
-let userScribeArray = new Array();
+let userScribeArray = "";
 async function retrieveUserScribes() {
     try {
         userScribeArray = await UserScribe.find({}).exec();
@@ -194,23 +194,22 @@ function makeID(length) {
     return result;
 }
 
-app.get("/login", function (req, res) {
-    console.log("GET /login");
+function handleAuthURI() {
     var state = makeID(16);
     var scope =
         "user-read-playback-state user-modify-playback-state user-read-private user-read-email user-read-recently-played";
 
-    res.redirect(
+    return (
         "https://accounts.spotify.com/authorize?" +
-            qs.stringify({
-                response_type: "code",
-                client_id: clientID,
-                scope: scope,
-                redirect_uri: "http://localhost:5000/callback",
-                state: state,
-            })
+        qs.stringify({
+            response_type: "code",
+            client_id: clientID,
+            scope: scope,
+            redirect_uri: "http://localhost:5000/callback",
+            state: state,
+        })
     );
-});
+}
 
 app.get("/callback", async function (req, res) {
     console.log("GET /callback");
@@ -219,19 +218,22 @@ app.get("/callback", async function (req, res) {
         accessToken = authData.access_token;
         refreshToken = authData.refresh_token;
     }
-    res.redirect("/api");
 });
 
 app.get("/api", async (req, res) => {
     console.log("GET /api");
     if (accessToken === "") {
         console.log("No token, retrieving");
-        res.redirect("/login");
+        let spotify_auth_uri = await handleAuthURI();
+        console.log(spotify_auth_uri);
+        res.send(JSON.stringify({ uri: spotify_auth_uri }));
         return;
     } else {
         try {
-            console.log("Retrieving database data");
-            retrieveUserScribes();
+            if (!userScribeArray) {
+                console.log("Retrieving database data");
+                retrieveUserScribes();
+            }
             if (userData === "") {
                 console.log("Getting user data");
                 userData = await getUserData();
@@ -301,10 +303,10 @@ app.get("/api", async (req, res) => {
 
 app.put("/api", (req, res) => {
     if (accessToken == "") {
-        res.redirect("/login");
+        res.send(JSON.stringify({ status: "failure, no accessToken" }));
+    } else {
+        seekToPosition(req.body.timeInMS);
     }
-    seekToPosition(req.body.timeInMS);
-    res.send(JSON.stringify({ status: "success" }));
 });
 
 app.post("/api", async (req, res) => {
@@ -354,6 +356,7 @@ app.post("/api", async (req, res) => {
                 await scribe.save();
             }
         });
+        await retrieveUserScribes();
         res.send(JSON.stringify({ status: "success" }));
     }
 });
