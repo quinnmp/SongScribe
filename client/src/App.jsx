@@ -59,14 +59,26 @@ function App() {
                                     setNotes([]);
                                     setArtists([]);
                                     setAlbumArtists([]);
-                                    $("#quick-summary-input").val("");
-                                    $("#review-input").val("");
+                                    if (data.database_data.quickSummary) {
+                                        $("#quick-summary-input").val(
+                                            data.database_data.quickSummary
+                                        );
+                                    } else {
+                                        $("#quick-summary-input").val("");
+                                    }
+                                    if (data.database_data.review) {
+                                        $("#review-input").val(
+                                            data.database_data.review
+                                        );
+                                    } else {
+                                        $("#review-input").val("");
+                                    }
                                     if (notes.length === 0) {
                                         setNotes(data.database_data.notes);
                                     }
                                 }
-                                await setRecentData(data.recent_notes);
                                 setSongID(data.spotify_player_data.item.id);
+                                setRecentData(data.recent_notes);
                                 if (
                                     Math.abs(
                                         data.spotify_player_data.progress_ms -
@@ -172,16 +184,6 @@ function App() {
                                 );
                                 setAlbumReviews(data.album_reviews);
                                 setSongsWithData(data.songs_with_data);
-                                if ($("#quick-summary-input").val() === "") {
-                                    $("#quick-summary-input").val(
-                                        data.database_data.quickSummary
-                                    );
-                                }
-                                if ($("#review-input").val() === "") {
-                                    $("#review-input").val(
-                                        data.database_data.review
-                                    );
-                                }
                             }
                         } catch (e) {
                             console.log(e);
@@ -393,7 +395,9 @@ function App() {
                                         }
                                     />
                                 ))}
-                                <h1 className="mt-3">Recent tracks</h1>
+                                <h1 className="mt-5 small-text">
+                                    Recently added tracks
+                                </h1>
                                 {recentData.map((song, i) => (
                                     <RecentNote
                                         key={i}

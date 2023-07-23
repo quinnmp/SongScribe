@@ -334,17 +334,33 @@ app.get("/api", async (req, res) => {
     }
 });
 
-app.put("/api", (req, res) => {
-    if (accessToken == "") {
+app.put("/api", async (req, res) => {
+    if (accessToken === "") {
         res.send(JSON.stringify({ status: "failure, no accessToken" }));
     } else {
-        seekToPosition(req.body.timeInMS);
+        await seekToPosition(req.body.timeInMS);
+        res.send(JSON.stringify({ status: "success" }));
     }
 });
 
 app.post("/api", async (req, res) => {
     console.log(req.body);
-    if (!req.quickSummary && !req.review && !req.notes) {
+    let reqData = await req.body;
+    if (!reqData.quickSummary) {
+        console.log("No summary");
+    }
+    if (!reqData.review) {
+        console.log("No review");
+    }
+    if (reqData.notes.length === 0) {
+        console.log("No notes");
+    }
+    if (
+        (!reqData.quickSummary &&
+            !reqData.review &&
+            reqData.notes.length === 0) ||
+        !reqData.id
+    ) {
         console.log("Empty note, POST rejected");
         res.send(JSON.stringify({ status: "failure" }));
     } else {

@@ -130,6 +130,10 @@ label {
     border: 0px;
 }
 
+.small-text {
+    font-size: 1.5rem;
+}
+
 .word-wrap {
     word-wrap: break-word;
     word-break: break-word;
