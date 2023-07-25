@@ -163,13 +163,12 @@ async function getSongData(id) {
 
 async function getRecentNoteData() {
     let recentData = [];
-    const reversedUserScribeArray = userScribeArray.slice().reverse();
 
-    for (const scribe of reversedUserScribeArray) {
+    for (const scribe of userScribeArray) {
         if (scribe.id === userData.id) {
             for (const song of scribe.songs) {
                 const songData = await getSongData(song.id);
-                recentData.push(songData);
+                recentData.splice(0, 0, songData);
                 if (recentData.length === 5) {
                     break;
                 }
