@@ -342,6 +342,32 @@ app.put("/api", async (req, res) => {
     }
 });
 
+app.put("/playback-control", async (req, res) => {
+    console.log("PUT /playback-control");
+    const paused = req.body.paused;
+    const apiURL = paused
+        ? `https://api.spotify.com/v1/me/player/play`
+        : `https://api.spotify.com/v1/me/player/pause`;
+    let data = {};
+    if (paused) {
+        data = {
+            position_ms: playerData.progress_ms,
+        };
+    }
+    try {
+        await axios.put(apiURL, data, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+        });
+        res.send(JSON.stringify({ status: "success" }));
+    } catch (e) {
+        console.log(e);
+        res.send(JSON.stringify({ status: "failure" }));
+    }
+});
+
 app.post("/api", async (req, res) => {
     console.log(req.body);
     let reqData = await req.body;

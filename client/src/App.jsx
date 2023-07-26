@@ -9,6 +9,7 @@ import PlaybackBar from "./components/PlaybackBar.jsx";
 import SongNoteArea from "./components/SongNoteArea.jsx";
 import AlbumTab from "./components/AlbumTab.jsx";
 import RecentNote from "./components/RecentNote.jsx";
+import PlaybackControl from "./components/PlaybackControl.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -32,6 +33,8 @@ function App() {
     const [albumArtists, setAlbumArtists] = useState([]);
     const [songsWithData, setSongsWithData] = useState([]);
     const [recentData, setRecentData] = useState([]);
+    const [shouldSubmit, setShouldSubmit] = useState(false);
+    const [paused, setPaused] = useState(false);
 
     useEffect(() => {
         let sliderProgress = 0;
@@ -55,6 +58,10 @@ function App() {
                                     data.spotify_player_data.item.id != songID
                                 ) {
                                     await submitNote();
+                                    setShouldSubmit(false);
+                                    setTimeout(() => {
+                                        setShouldSubmit(true);
+                                    }, 2000);
                                     setScrubbing(false);
                                     setNotes([]);
                                     setArtists([]);
@@ -77,6 +84,7 @@ function App() {
                                         setNotes(data.database_data.notes);
                                     }
                                 }
+                                setPaused(!data.spotify_player_data.is_playing);
                                 setSongID(data.spotify_player_data.item.id);
                                 setRecentData(data.recent_notes);
                                 if (
@@ -328,23 +336,40 @@ function App() {
             .then((data) => data);
     }
 
-    async function submitNote() {
-        console.log("Submit note");
+    async function controlPlayback() {
         const requestOptions = {
-            method: "POST",
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                id: songID,
-                quickSummary: $("#quick-summary-input").val(),
-                review: $("#review-input").val(),
-                notes: notes,
-            }),
+            body: JSON.stringify({ paused: paused }),
         };
-        await fetch("http://localhost:5000/api", requestOptions)
+        await fetch("http://localhost:5000/playback-control", requestOptions)
             .then((response) => {
                 return response.json();
             })
-            .then((data) => console.log(data));
+            .then((data) => data);
+    }
+
+    async function submitNote() {
+        if (shouldSubmit) {
+            console.log("Submit note");
+            const requestOptions = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: songID,
+                    quickSummary: $("#quick-summary-input").val(),
+                    review: $("#review-input").val(),
+                    notes: notes,
+                }),
+            };
+            await fetch("http://localhost:5000/api", requestOptions)
+                .then((response) => {
+                    return response.json();
+                })
+                .then((data) => console.log(data));
+        } else {
+            console.log("Submit sent too soon. Did not submit.");
+        }
     }
 
     function setNoteTimeStamp() {
@@ -456,6 +481,10 @@ function App() {
                     note={note.note}
                 />
             ))}
+            <PlaybackControl
+                paused={paused}
+                onClick={() => controlPlayback()}
+            />
         </>
     );
 }
