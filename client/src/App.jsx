@@ -26,7 +26,6 @@ function App() {
     const [releaseDate, setReleaseDate] = useState("");
     const [notes, setNotes] = useState([]);
     const [scrubbing, setScrubbing] = useState(false);
-    const [uploadingNote, setUploadingNote] = useState(false);
     const [tracklist, setTracklist] = useState([]);
     const [albumReviews, setAlbumReviews] = useState([]);
     const [albumArtists, setAlbumArtists] = useState([]);
@@ -235,11 +234,7 @@ function App() {
                 .off("click")
                 .click(
                     debounce(async function () {
-                        if (!uploadingNote) {
-                            setUploadingNote(true);
-                            await submitNote();
-                            setUploadingNote(false);
-                        }
+                        await submitNote();
                     }, 1000)
                 );
             $("#noteInput")
@@ -288,9 +283,8 @@ function App() {
         async function submitNote() {
             console.log("In submitNote. shouldSubmit is " + shouldSubmit);
             if (shouldSubmit === true) {
-                console.log("Setting shouldSubmit to false");
                 setShouldSubmit(false);
-                console.log("Submit note");
+                handleShouldSubmit(songID);
                 const requestOptions = {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -314,7 +308,7 @@ function App() {
         return () => {
             clearInterval(interval);
         };
-    }, [songID, scrubbing, artists, albumArtists, shouldSubmit]);
+    }, [songID, scrubbing, artists, albumArtists, shouldSubmit, notes]);
 
     class Note {
         constructor(timestamp, length, note) {
@@ -327,11 +321,7 @@ function App() {
     async function handleShouldSubmit(tempID) {
         setTimeout(() => {
             if (tempID === songIDRef.current) {
-                console.log("Setting shouldSubmit to true");
                 setShouldSubmit(true);
-            } else {
-                console.log(tempID);
-                console.log(songIDRef.current);
             }
         }, 2000);
     }
