@@ -165,9 +165,9 @@ async function getRecentNoteData() {
 
     for (const scribe of userScribeArray) {
         if (scribe.id === userData.id) {
-            for (const song of scribe.songs) {
-                const songData = await getSongData(song.id);
-                recentData.splice(0, 0, songData);
+            for (let i = scribe.songs.length - 1; i > 0; i--) {
+                const songData = await getSongData(scribe.songs[i].id);
+                recentData.push(songData);
                 if (recentData.length === 5) {
                     break;
                 }

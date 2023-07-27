@@ -393,8 +393,6 @@ function App() {
     return (
         <>
             <div className="container">
-                <h1>{shouldSubmit ? "true" : "false"}</h1>
-                <h1>{songID}</h1>
                 <NavBar />
                 <div className="tab-content" id="myTabContent">
                     <div
