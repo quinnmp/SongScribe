@@ -38,6 +38,7 @@ let userScribeArray = "";
 async function retrieveUserScribes() {
     try {
         userScribeArray = await UserScribe.find({}).exec();
+        console.log("Database data updated");
     } catch (e) {
         console.log(e.response.data);
     }
@@ -55,7 +56,7 @@ let refreshToken = "";
 let albumData = "";
 let userData = "";
 let playerData = "";
-let recentNoteData = "";
+let recentNoteData = [];
 let albumID = -1;
 
 async function getAuth(code) {
@@ -161,18 +162,19 @@ async function getSongData(id) {
 }
 
 async function getRecentNoteData() {
-    let recentData = [];
+    console.log("Getting recent note data");
 
+    recentNoteData = [];
     for (const scribe of userScribeArray) {
         if (scribe.id === userData.id) {
             for (let i = scribe.songs.length - 1; i > 0; i--) {
                 const songData = await getSongData(scribe.songs[i].id);
-                recentData.push(songData);
-                if (recentData.length === 5) {
+                recentNoteData.push(songData);
+                if (recentNoteData.length === 5) {
                     break;
                 }
             }
-            return recentData;
+            return recentNoteData;
         }
     }
 }
@@ -404,7 +406,7 @@ app.post("/api", async (req, res) => {
         userScribeArray.forEach(async (scribe) => {
             if (scribe.id === userData.id) {
                 console.log("Account found!");
-                scribe.songs.forEach((song) => {
+                scribe.songs.forEach(async (song) => {
                     if (song.id === req.body.id) {
                         console.log("Song exists already, updating info");
                         containsSong = true;
@@ -423,10 +425,10 @@ app.post("/api", async (req, res) => {
                     });
                 }
                 await scribe.save();
+                await retrieveUserScribes();
+                await getRecentNoteData();
             }
         });
-        await retrieveUserScribes();
-        recentNoteData = await getRecentNoteData();
         res.send(JSON.stringify({ status: "success" }));
     }
 });
