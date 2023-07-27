@@ -104,7 +104,6 @@ async function getRefreshedToken(refreshToken) {
                 },
             }
         );
-        console.log(response);
         return response.data.access_token;
     } catch (e) {
         console.log(e.response.data);
@@ -258,7 +257,7 @@ app.get("/api", async (req, res) => {
     console.log("GET /api");
     if (accessToken === "") {
         console.log("No token, retrieving");
-        let spotify_auth_uri = await handleAuthURI();
+        let spotify_auth_uri = handleAuthURI();
         res.send(JSON.stringify({ uri: spotify_auth_uri }));
         return;
     } else {
@@ -272,7 +271,6 @@ app.get("/api", async (req, res) => {
                 userData = await getUserData();
                 recentNoteData = await getRecentNoteData();
             }
-
             console.log("Getting player data");
             playerData = await getPlayerState();
             if (playerData.item.album.id !== albumID) {
@@ -280,7 +278,6 @@ app.get("/api", async (req, res) => {
                 albumData = await getAlbumData(playerData.item.album.id);
                 albumID = playerData.item.album.id;
             }
-
             let trackIDArray = [];
             albumData.tracks.items.map((track) => {
                 trackIDArray.push(track.id);
@@ -293,7 +290,6 @@ app.get("/api", async (req, res) => {
             let playingSongID = "";
             let albumReviews = [];
             let songsWithData = [];
-
             playingSongID = playerData.item.id;
             await userScribeArray.forEach((scribe) => {
                 if (scribe.id === userData.id) {
@@ -312,7 +308,6 @@ app.get("/api", async (req, res) => {
                     });
                 }
             });
-
             res.send(
                 JSON.stringify({
                     spotify_player_data: playerData,
@@ -363,7 +358,7 @@ app.put("/playback-control", async (req, res) => {
         });
         res.send(JSON.stringify({ status: "success" }));
     } catch (e) {
-        console.log(e);
+        console.log(e.response);
         res.send(JSON.stringify({ status: "failure" }));
     }
 });

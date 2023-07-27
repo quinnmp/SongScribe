@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import AlbumSidebar from "./components/AlbumSidebar.jsx";
 import NoteModal from "./components/NoteModal.jsx";
 import EditNoteModal from "./components/EditNoteModal.jsx";
@@ -17,7 +17,6 @@ function App() {
     const [playbackProgressString, setPlaybackProgressString] = useState("");
     const [tempTimeStamp, setTempTimeStamp] = useState("");
     const [trackLength, setTrackLength] = useState(-1);
-    const [playbackPercent, setPlaybackPercent] = useState("");
     const [albumCoverURL, setAlbumCoverURL] = useState("");
     const [totalTracks, setTotalTracks] = useState(-1);
     const [trackNumber, setTrackNumber] = useState(-1);
@@ -35,11 +34,12 @@ function App() {
     const [recentData, setRecentData] = useState([]);
     const [shouldSubmit, setShouldSubmit] = useState(false);
     const [paused, setPaused] = useState(false);
+    const songIDRef = useRef(songID);
 
     useEffect(() => {
         let sliderProgress = 0;
         function getPlaybackState() {
-            console.log("Getting Playback State");
+            console.log("Get playback state");
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
@@ -58,10 +58,10 @@ function App() {
                                     data.spotify_player_data.item.id != songID
                                 ) {
                                     await submitNote();
-                                    setShouldSubmit(false);
-                                    setTimeout(() => {
-                                        setShouldSubmit(true);
-                                    }, 2000);
+                                    setSongID(data.spotify_player_data.item.id);
+                                    let tempID =
+                                        data.spotify_player_data.item.id;
+                                    handleShouldSubmit(tempID);
                                     setScrubbing(false);
                                     setNotes([]);
                                     setArtists([]);
@@ -85,7 +85,6 @@ function App() {
                                     }
                                 }
                                 setPaused(!data.spotify_player_data.is_playing);
-                                setSongID(data.spotify_player_data.item.id);
                                 setRecentData(data.recent_notes);
                                 if (
                                     Math.abs(
@@ -103,16 +102,6 @@ function App() {
                                         data.spotify_player_data.progress_ms
                                     );
                                 }
-                                setPlaybackPercent(
-                                    ((scrubbing
-                                        ? sliderProgress
-                                        : data.spotify_player_data
-                                              .progress_ms) /
-                                        data.spotify_player_data.item
-                                            .duration_ms) *
-                                        95 +
-                                        "%"
-                                );
                                 setPlaybackProgressString(
                                     Math.floor(
                                         (scrubbing
@@ -199,28 +188,19 @@ function App() {
                     }
                 });
         }
-        getPlaybackState();
         const interval = setInterval(() => getPlaybackState(), 1000);
-
-        class Note {
-            constructor(timestamp, length, note) {
-                this.timestamp = timestamp;
-                this.length = length;
-                this.note = note;
-            }
-        }
 
         $(document).ready(function () {
             $(".form-range")
                 .off("change")
                 .on("change", async function (event) {
                     await setUserPlaybackProgress(event.currentTarget.value);
-                    await setPlaybackProgress(event.currentTarget.value);
+                    setPlaybackProgress(event.currentTarget.value);
                 });
             $(".form-range")
                 .off("input")
                 .on("input", async function (event) {
-                    await setScrubbing(true);
+                    setScrubbing(true);
                     setPlaybackProgress(event.currentTarget.value);
                     sliderProgress = event.currentTarget.value;
                 });
@@ -239,7 +219,7 @@ function App() {
                 .off("click")
                 .click(async function () {
                     let noteData = $(".note-form").serializeArray();
-                    await setNotes([
+                    setNotes([
                         ...notes,
                         new Note(
                             noteData[0].value,
@@ -298,16 +278,67 @@ function App() {
                         );
                         console.log(notes);
                         let tempNotesArray = notes;
-                        await tempNotesArray.splice(i, 0, editedNote);
-                        await tempNotesArray.splice(i + 1, 1);
-                        await setNotes(tempNotesArray);
+                        tempNotesArray.splice(i, 0, editedNote);
+                        tempNotesArray.splice(i + 1, 1);
+                        setNotes(tempNotesArray);
                     });
             });
         });
+
+        async function submitNote() {
+            console.log("In submitNote. shouldSubmit is " + shouldSubmit);
+            if (shouldSubmit === true) {
+                console.log("Setting shouldSubmit to false");
+                setShouldSubmit(false);
+                console.log("Submit note");
+                const requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: songID,
+                        quickSummary: $("#quick-summary-input").val(),
+                        review: $("#review-input").val(),
+                        notes: notes,
+                    }),
+                };
+                await fetch("http://localhost:5000/api", requestOptions)
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => console.log(data));
+            } else {
+                console.log("Submit sent too soon. Did not submit.");
+            }
+        }
+
         return () => {
             clearInterval(interval);
         };
-    }, [notes, scrubbing, uploadingNote, artists]);
+    }, [songID, scrubbing, artists, albumArtists, shouldSubmit]);
+
+    class Note {
+        constructor(timestamp, length, note) {
+            this.timestamp = timestamp;
+            this.length = length;
+            this.note = note;
+        }
+    }
+
+    async function handleShouldSubmit(tempID) {
+        setTimeout(() => {
+            if (tempID === songIDRef.current) {
+                console.log("Setting shouldSubmit to true");
+                setShouldSubmit(true);
+            } else {
+                console.log(tempID);
+                console.log(songIDRef.current);
+            }
+        }, 2000);
+    }
+
+    useEffect(() => {
+        songIDRef.current = songID;
+    }, [songID]);
 
     const debounce = (func, wait) => {
         let timeout;
@@ -349,29 +380,6 @@ function App() {
             .then((data) => data);
     }
 
-    async function submitNote() {
-        if (shouldSubmit) {
-            console.log("Submit note");
-            const requestOptions = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id: songID,
-                    quickSummary: $("#quick-summary-input").val(),
-                    review: $("#review-input").val(),
-                    notes: notes,
-                }),
-            };
-            await fetch("http://localhost:5000/api", requestOptions)
-                .then((response) => {
-                    return response.json();
-                })
-                .then((data) => console.log(data));
-        } else {
-            console.log("Submit sent too soon. Did not submit.");
-        }
-    }
-
     function setNoteTimeStamp() {
         setTempTimeStamp(playbackProgressString);
     }
@@ -385,6 +393,8 @@ function App() {
     return (
         <>
             <div className="container">
+                <h1>{shouldSubmit ? "true" : "false"}</h1>
+                <h1>{songID}</h1>
                 <NavBar />
                 <div className="tab-content" id="myTabContent">
                     <div
