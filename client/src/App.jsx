@@ -10,6 +10,7 @@ import SongNoteArea from "./components/SongNoteArea.jsx";
 import AlbumTab from "./components/AlbumTab.jsx";
 import RecentNote from "./components/RecentNote.jsx";
 import PlaybackControl from "./components/PlaybackControl.jsx";
+import ErrorModal from "./components/ErrorModal.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -190,6 +191,13 @@ function App() {
         const interval = setInterval(() => getPlaybackState(), 1000);
 
         $(document).ready(function () {
+            if (artists.length === 0) {
+                let errorModalTriggerButton = $("#errorModalTriggerButton");
+                errorModalTriggerButton.click();
+            } else {
+                let errorModalDismissButton = $("#errorModalCloseButton");
+                errorModalDismissButton.click();
+            }
             $(".form-range")
                 .off("change")
                 .on("change", async function (event) {
@@ -483,6 +491,7 @@ function App() {
                 paused={paused}
                 onClick={() => controlPlayback()}
             />
+            <ErrorModal></ErrorModal>
         </>
     );
 }

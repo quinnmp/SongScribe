@@ -196,9 +196,10 @@ label {
     margin-right: 5px;
 }
 
-@media (min-width: 768px) .comment-count {
-}
-
 #add-note-spacer {
     height: 64px;
+}
+
+#errorModalTriggerButton {
+    display: none;
 }

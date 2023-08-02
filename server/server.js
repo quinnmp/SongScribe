@@ -252,6 +252,7 @@ app.get("/callback", async function (req, res) {
     if (authData) {
         accessToken = authData.access_token;
         refreshToken = authData.refresh_token;
+    } else {
     }
 });
 
@@ -326,6 +327,7 @@ app.get("/api", async (req, res) => {
             );
             console.log(e);
             accessToken = await getRefreshedToken(refreshToken);
+            res.send(JSON.stringify({ status: "failure" }));
         }
     }
 });
