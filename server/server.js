@@ -276,51 +276,57 @@ app.get("/api", async (req, res) => {
             }
             console.log("Getting player data");
             playerData = await getPlayerState();
-            if (playerData.item.album.id !== albumID) {
-                console.log("Getting album data");
-                albumData = await getAlbumData(playerData.item.album.id);
-                albumID = playerData.item.album.id;
-            }
-            let trackIDArray = [];
-            albumData.tracks.items.map((track) => {
-                trackIDArray.push(track.id);
-            });
-            let databaseData = {
-                quickSummary: "",
-                review: "",
-                notes: [],
-            };
-            let playingSongID = "";
-            let albumReviews = [];
-            let songsWithData = [];
-            playingSongID = playerData.item.id;
-            await userScribeArray.forEach((scribe) => {
-                if (scribe.id === userData.id) {
-                    scribe.songs.forEach((song) => {
-                        if (song.id === playingSongID) {
-                            databaseData = song;
-                        }
-                        if (trackIDArray.includes(song.id)) {
-                            albumReviews.push({
-                                id: song.id,
-                                quick_summary: song.quickSummary,
-                                review_count: song.notes.length,
-                            });
-                            songsWithData.push(song.id);
-                        }
-                    });
+            if (playerData !== "") {
+                if (playerData.item.album.id !== albumID) {
+                    console.log("Getting album data");
+                    albumData = await getAlbumData(playerData.item.album.id);
+                    albumID = playerData.item.album.id;
                 }
-            });
-            res.send(
-                JSON.stringify({
-                    spotify_player_data: playerData,
-                    spotify_album_data: albumData,
-                    database_data: databaseData,
-                    album_reviews: albumReviews,
-                    songs_with_data: songsWithData,
-                    recent_notes: recentNoteData,
-                })
-            );
+                let trackIDArray = [];
+                albumData.tracks.items.map((track) => {
+                    trackIDArray.push(track.id);
+                });
+                let databaseData = {
+                    quickSummary: "",
+                    review: "",
+                    notes: [],
+                };
+                let playingSongID = "";
+                let albumReviews = [];
+                let songsWithData = [];
+                playingSongID = playerData.item.id;
+                await userScribeArray.forEach((scribe) => {
+                    if (scribe.id === userData.id) {
+                        scribe.songs.forEach((song) => {
+                            if (song.id === playingSongID) {
+                                databaseData = song;
+                            }
+                            if (trackIDArray.includes(song.id)) {
+                                albumReviews.push({
+                                    id: song.id,
+                                    quick_summary: song.quickSummary,
+                                    review_count: song.notes.length,
+                                });
+                                songsWithData.push(song.id);
+                            }
+                        });
+                    }
+                });
+                res.send(
+                    JSON.stringify({
+                        spotify_player_data: playerData,
+                        spotify_album_data: albumData,
+                        database_data: databaseData,
+                        album_reviews: albumReviews,
+                        songs_with_data: songsWithData,
+                        recent_notes: recentNoteData,
+                    })
+                );
+            } else {
+                res.send(
+                    JSON.stringify({ status: "failure, no active device" })
+                );
+            }
         } catch (e) {
             console.log(
                 "Token is expired or something else went wrong in the retrieval process"

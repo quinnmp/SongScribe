@@ -34,10 +34,10 @@ function App() {
     const [recentData, setRecentData] = useState([]);
     const [shouldSubmit, setShouldSubmit] = useState(false);
     const [paused, setPaused] = useState(false);
+    const [sliderProgress, setSliderProgress] = useState(-1);
     const songIDRef = useRef(songID);
 
     useEffect(() => {
-        let sliderProgress = 0;
         function getPlaybackState() {
             console.log("Get playback state");
             const requestOptions = {
@@ -191,7 +191,7 @@ function App() {
         const interval = setInterval(() => getPlaybackState(), 1000);
 
         $(document).ready(function () {
-            if (artists.length === 0) {
+            if (songID === "") {
                 let errorModalTriggerButton = $("#errorModalTriggerButton");
                 errorModalTriggerButton.click();
             } else {
@@ -207,9 +207,17 @@ function App() {
             $(".form-range")
                 .off("input")
                 .on("input", async function (event) {
+                    setPlaybackProgressString(
+                        Math.floor(sliderProgress / 1000 / 60) +
+                            ":" +
+                            (Math.floor((sliderProgress / 1000) % 60) < 10
+                                ? "0"
+                                : "") +
+                            Math.floor((sliderProgress / 1000) % 60)
+                    );
                     setScrubbing(true);
                     setPlaybackProgress(event.currentTarget.value);
-                    sliderProgress = event.currentTarget.value;
+                    setSliderProgress(event.currentTarget.value);
                 });
             $('[data-bs-toggle="tooltip"]').tooltip({
                 trigger: "hover",
@@ -316,7 +324,15 @@ function App() {
         return () => {
             clearInterval(interval);
         };
-    }, [songID, scrubbing, artists, albumArtists, shouldSubmit, notes]);
+    }, [
+        songID,
+        scrubbing,
+        artists,
+        albumArtists,
+        shouldSubmit,
+        notes,
+        sliderProgress,
+    ]);
 
     class Note {
         constructor(timestamp, length, note) {
@@ -390,6 +406,7 @@ function App() {
 
     return (
         <>
+            {playbackProgressString}
             <div className="container">
                 <NavBar />
                 <div className="tab-content" id="myTabContent">
@@ -426,7 +443,7 @@ function App() {
                                         }
                                     />
                                 ))}
-                                <h1 className="mt-5 small-text">
+                                <h1 className="mt-5 mb-3 small-text">
                                     Recently added tracks
                                 </h1>
                                 {recentData.map((song, i) => (

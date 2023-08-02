@@ -39,7 +39,7 @@ function AlbumTab(props) {
                             <div className="vr"></div>
                             <div className="col-md-5 col-4 word-wrap">
                                 {props.songsWithData.includes(track.id) && (
-                                    <h3 key={i}>
+                                    <h3 key={i} className="fw-normal">
                                         {
                                             props.albumReviews[
                                                 props.songsWithData.findIndex(

@@ -17,7 +17,7 @@ function ErrorModal() {
                             </h1>
                         </div>
                         <div className="modal-body">
-                            <h3>
+                            <h3 className="fw-normal">
                                 Looks like you're not listening to anything. Put
                                 on a track on Spotify and this page should
                                 update!
