@@ -7,8 +7,10 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({ origin: "http://127.0.0.1:5173" }));
 require("dotenv").config();
+
+const corsUrl = "https://spotiscribe.onrender.com";
+app.use(cors({ origin: corsUrl }));
 
 mongoose.connect(
     `mongodb+srv://miles:${process.env.DB_PASSWORD}@userscribes.rzgicer.mongodb.net/`
