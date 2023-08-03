@@ -396,60 +396,67 @@ app.post("/api", async (req, res) => {
     if (reqData.notes.length === 0) {
         console.log("No notes");
     }
-    if (
+    await retrieveUserScribes();
+    const userData = await getUserData();
+    let containsUser = false;
+    let containsSong = false;
+    userScribeArray.forEach((scribe) => {
+        if (scribe.id === userData.id) {
+            containsUser = true;
+        }
+    });
+    if (!containsUser) {
+        const userScribe = new UserScribe({
+            id: userData.id,
+            songs: [],
+        });
+        await userScribe.save();
+        await retrieveUserScribes();
+    }
+    let noteEmpty =
         (!reqData.quickSummary &&
             !reqData.review &&
             reqData.notes.length === 0) ||
-        !reqData.id
-    ) {
-        console.log("Empty note, POST rejected");
-        res.send(JSON.stringify({ status: "failure" }));
-    } else {
-        await retrieveUserScribes();
-        const userData = await getUserData();
-        let containsUser = false;
-        let containsSong = false;
-        userScribeArray.forEach((scribe) => {
-            if (scribe.id === userData.id) {
-                containsUser = true;
-            }
-        });
-        if (!containsUser) {
-            const userScribe = new UserScribe({
-                id: userData.id,
-                songs: [],
-            });
-            await userScribe.save();
-            await retrieveUserScribes();
-        }
-        userScribeArray.forEach(async (scribe) => {
-            if (scribe.id === userData.id) {
-                console.log("Account found!");
-                scribe.songs.forEach(async (song) => {
-                    if (song.id === req.body.id) {
+        !reqData.id;
+    let skipPush = false;
+    userScribeArray.forEach(async (scribe) => {
+        if (scribe.id === userData.id) {
+            console.log("Account found!");
+            scribe.songs.forEach(async (song, index) => {
+                if (song.id === req.body.id) {
+                    if (noteEmpty) {
+                        console.log("Empty note, deleting song");
+                        scribe.songs.splice(index, 1);
+                        skipPush = true;
+                    } else {
                         console.log("Song exists already, updating info");
                         containsSong = true;
                         song.quickSummary = req.body.quickSummary;
                         song.review = req.body.review;
                         song.notes = req.body.notes;
                     }
-                });
-                if (!containsSong) {
-                    console.log("Song does not exist, pushing new data");
-                    scribe.songs.push({
-                        id: req.body.id,
-                        quickSummary: req.body.quickSummary,
-                        review: req.body.review,
-                        notes: req.body.notes,
-                    });
                 }
-                await scribe.save();
-                await retrieveUserScribes();
-                await getRecentNoteData();
+            });
+            if (!containsSong && !skipPush) {
+                console.log("Song does not exist, pushing new data");
+                if (noteEmpty) {
+                    console.log("Empty note, POST rejected");
+                    res.send(JSON.stringify({ status: "failure" }));
+                    return;
+                }
+                scribe.songs.push({
+                    id: req.body.id,
+                    quickSummary: req.body.quickSummary,
+                    review: req.body.review,
+                    notes: req.body.notes,
+                });
             }
-        });
-        res.send(JSON.stringify({ status: "success" }));
-    }
+            await scribe.save();
+            await retrieveUserScribes();
+            await getRecentNoteData();
+            res.send(JSON.stringify({ status: "success" }));
+        }
+    });
 });
 
 const PORT = process.env.PORT || 5000;
