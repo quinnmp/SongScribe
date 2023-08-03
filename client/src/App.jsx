@@ -90,7 +90,10 @@ function App() {
                                         $("#review-input").val("");
                                     }
                                 }
-                                if (notes.length === 0) {
+                                if (
+                                    notes.length === 0 &&
+                                    data.database_data.notes.length !== 0
+                                ) {
                                     setNotes(data.database_data.notes);
                                 }
                                 setPaused(!data.spotify_player_data.is_playing);
