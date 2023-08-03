@@ -12,7 +12,7 @@ require("dotenv").config();
 const corsUrl =
     process.env.NODE_ENV === "development"
         ? "http://127.0.0.1:5173"
-        : "https://spotiscribe.onrender.com/";
+        : "https://spotiscribe.onrender.com";
 app.use(cors({ origin: corsUrl }));
 
 mongoose.connect(
@@ -69,7 +69,10 @@ async function getAuth(code) {
         const data = qs.stringify({
             grant_type: "authorization_code",
             code: code,
-            redirect_uri: "http://localhost:5000/callback",
+            redirect_uri:
+                process.env.NODE_ENV === "development"
+                    ? "http://localhost:5000/callback"
+                    : "https://spotiscribe-api.onrender.com/callback",
         });
         const tokenURL = "https://accounts.spotify.com/api/token?" + data;
 
@@ -245,7 +248,10 @@ function handleAuthURI() {
             response_type: "code",
             client_id: clientID,
             scope: scope,
-            redirect_uri: "http://localhost:5000/callback",
+            redirect_uri:
+                process.env.NODE_ENV === "development"
+                    ? "http://localhost:5000/callback"
+                    : "https://spotiscribe-api.onrender.com/callback",
             state: state,
         })
     );
@@ -449,4 +455,5 @@ app.post("/api", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log("Server started on port " + PORT);
+    console.log(process.env.NODE_ENV);
 });
