@@ -37,7 +37,7 @@ function App() {
     const [sliderProgress, setSliderProgress] = useState(-1);
     const songIDRef = useRef(songID);
     const apiUrl =
-        process.env.NODE_ENV === "development"
+        process.env.NODE_ENV !== "production"
             ? "http://localhost:5000"
             : "https://spotiscribe-api.onrender.com";
 

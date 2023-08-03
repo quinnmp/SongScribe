@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 require("dotenv").config();
 
 const corsUrl =
-    process.env.NODE_ENV === "development"
+    process.env.NODE_ENV !== "production"
         ? "http://127.0.0.1:5173"
         : "https://spotiscribe.onrender.com";
 app.use(cors({ origin: corsUrl }));
@@ -70,7 +70,7 @@ async function getAuth(code) {
             grant_type: "authorization_code",
             code: code,
             redirect_uri:
-                process.env.NODE_ENV === "development"
+                process.env.NODE_ENV !== "production"
                     ? "http://localhost:5000/callback"
                     : "https://spotiscribe-api.onrender.com/callback",
         });
@@ -249,7 +249,7 @@ function handleAuthURI() {
             client_id: clientID,
             scope: scope,
             redirect_uri:
-                process.env.NODE_ENV === "development"
+                process.env.NODE_ENV !== "production"
                     ? "http://localhost:5000/callback"
                     : "https://spotiscribe-api.onrender.com/callback",
             state: state,
