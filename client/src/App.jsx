@@ -424,7 +424,7 @@ function App() {
                         tabIndex="0"
                     >
                         <div className="row mt-5">
-                            <div className="col-3 word-wrap">
+                            <div className="col-md-3 col-4 word-wrap">
                                 <AlbumSidebar
                                     albumCoverURL={albumCoverURL}
                                     trackNumber={trackNumber}
@@ -461,7 +461,7 @@ function App() {
                                     />
                                 ))}
                             </div>
-                            <div className="col-9 px-md-5 px-sm-3">
+                            <div className="col-md-9 col-8 px-md-5 px-sm-3">
                                 <NoteArea
                                     notes={notes}
                                     trackLength={trackLength}
