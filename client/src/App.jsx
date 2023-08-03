@@ -51,11 +51,9 @@ function App() {
             const apiUrlMain = apiUrl + "/api";
             fetch(apiUrlMain, requestOptions)
                 .then((response) => {
-                    console.log(response);
                     return response.json();
                 })
                 .then(async (data) => {
-                    console.log(data);
                     if (data.uri) {
                         window.location.replace(data.uri);
                     } else {
