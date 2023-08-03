@@ -57,6 +57,7 @@ function App() {
                                 if (
                                     data.spotify_player_data.item.id != songID
                                 ) {
+                                    console.log("New song, clearing data");
                                     await submitNote();
                                     setSongID(data.spotify_player_data.item.id);
                                     let tempID =
@@ -80,9 +81,9 @@ function App() {
                                     } else {
                                         $("#review-input").val("");
                                     }
-                                    if (notes.length === 0) {
-                                        setNotes(data.database_data.notes);
-                                    }
+                                }
+                                if (notes.length === 0) {
+                                    setNotes(data.database_data.notes);
                                 }
                                 setPaused(!data.spotify_player_data.is_playing);
                                 setRecentData(data.recent_notes);
