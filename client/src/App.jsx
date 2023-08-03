@@ -48,7 +48,7 @@ function App() {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
-            let apiUrlMain = apiUrl + "/api";
+            const apiUrlMain = apiUrl + "/api";
             fetch(apiUrlMain, requestOptions)
                 .then((response) => {
                     console.log(response);
