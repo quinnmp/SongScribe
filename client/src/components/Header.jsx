@@ -28,7 +28,7 @@ function Header() {
                             </svg>
                         </div>
                         <div className="col-5 ps-0">
-                            <h1 className="text-nowrap">SpotiScribe</h1>
+                            <h1 className="text-nowrap">SongScribe</h1>
                         </div>
                     </div>
                     <div className="row">

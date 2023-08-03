@@ -13,7 +13,7 @@ function ErrorModal() {
                     <div className="modal-content p-2">
                         <div className="modal-header">
                             <h1 className="modal-title">
-                                Welcome to SpotiScribe!
+                                Welcome to SongScribe!
                             </h1>
                         </div>
                         <div className="modal-body">

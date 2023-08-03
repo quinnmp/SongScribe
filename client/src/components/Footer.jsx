@@ -6,7 +6,7 @@ function Footer() {
                     <div className="row">
                         <div className="col-12 d-flex justify-content-center">
                             <p className="mt-5 mb-5 me-3">
-                                Quinn Pfeifer, 2023 | SpotiScribe
+                                Quinn Pfeifer, 2023 | SongScribe
                             </p>
                             <a href="https://github.com/QuinnP2910/SpotiScribe">
                                 <svg
