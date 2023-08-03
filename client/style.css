@@ -41,6 +41,19 @@ label {
     max-width: 25%;
 }
 
+a:hover {
+    text-decoration-color: #b0be89;
+}
+
+a {
+    text-decoration-color: #d8e9a8;
+}
+
+.spotify-link {
+    position: relative;
+    top: 5px;
+}
+
 .bi-github {
     position: relative;
     top: 10px;
