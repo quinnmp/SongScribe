@@ -3,7 +3,10 @@
     "private": true,
     "version": "0.0.0",
     "type": "module",
-    "proxy": "http://localhost:5000",
+    "proxy": {
+        "development": "http://localhost:5000",
+        "production": "https://spotiscribe-api.onrender.com"
+      },
     "scripts": {
         "dev": "vite",
         "build": "vite build",
