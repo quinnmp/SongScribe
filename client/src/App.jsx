@@ -36,7 +36,6 @@ function App() {
     const [paused, setPaused] = useState(false);
     const [sliderProgress, setSliderProgress] = useState(-1);
     const songIDRef = useRef(songID);
-
     const apiUrl =
         process.env.NODE_ENV === "development"
             ? "http://localhost:5000"
@@ -49,7 +48,8 @@ function App() {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
-            fetch(apiUrl + "/api", requestOptions)
+            const apiUrlMain = apiUrl + "/api";
+            fetch(apiUrlMain, requestOptions)
                 .then((response) => {
                     return response.json();
                 })
