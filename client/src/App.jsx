@@ -35,6 +35,7 @@ function App() {
     const [shouldSubmit, setShouldSubmit] = useState(false);
     const [paused, setPaused] = useState(false);
     const [sliderProgress, setSliderProgress] = useState(-1);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const songIDRef = useRef(songID);
     const apiUrl =
         process.env.NODE_ENV !== "production"
@@ -197,6 +198,15 @@ function App() {
         const interval = setInterval(() => getPlaybackState(), 1000);
 
         $(document).ready(function () {
+            const handleResize = () => {
+                if (window.innerWidth < 768) {
+                    setIsMobile(true);
+                } else {
+                    setIsMobile(false);
+                }
+            };
+            window.addEventListener("resize", handleResize);
+
             if (songID === "") {
                 let errorModalTriggerButton = $("#errorModalTriggerButton");
                 errorModalTriggerButton.click();
@@ -434,32 +444,39 @@ function App() {
                                     artists={artists}
                                     releaseDate={releaseDate}
                                 />
-                                {notes.map((note, i) => (
-                                    <SidebarNote
-                                        note={note}
-                                        notes={notes}
-                                        key={i}
-                                        index={i}
-                                        onClick={() =>
-                                            setUserPlaybackProgress(
-                                                timestampToMilliseconds(
-                                                    note.timestamp
-                                                )
-                                            )
-                                        }
-                                    />
-                                ))}
-                                <h1 className="mt-5 mb-3 small-text">
-                                    Recently added tracks
-                                </h1>
-                                {recentData.map((song, i) => (
-                                    <RecentNote
-                                        key={i}
-                                        albumCoverURL={song.album.images[0].url}
-                                        songTitle={song.name}
-                                        artist={song.artists[0].name}
-                                    />
-                                ))}
+
+                                {!isMobile && (
+                                    <>
+                                        {notes.map((note, i) => (
+                                            <SidebarNote
+                                                note={note}
+                                                notes={notes}
+                                                key={i}
+                                                index={i}
+                                                onClick={() =>
+                                                    setUserPlaybackProgress(
+                                                        timestampToMilliseconds(
+                                                            note.timestamp
+                                                        )
+                                                    )
+                                                }
+                                            />
+                                        ))}
+                                        <h1 className="mt-5 mb-3 small-text">
+                                            Recently added tracks
+                                        </h1>
+                                        {recentData.map((song, i) => (
+                                            <RecentNote
+                                                key={i}
+                                                albumCoverURL={
+                                                    song.album.images[0].url
+                                                }
+                                                songTitle={song.name}
+                                                artist={song.artists[0].name}
+                                            />
+                                        ))}
+                                    </>
+                                )}
                             </div>
                             <div className="col-md-9 col-8 px-md-5 px-sm-3">
                                 <NoteArea
@@ -487,6 +504,40 @@ function App() {
                                     <SongNoteArea />
                                 </div>
                             </div>
+                            {isMobile && (
+                                <div className="row">
+                                    <div className="col-12 word-wrap">
+                                        {notes.map((note, i) => (
+                                            <SidebarNote
+                                                note={note}
+                                                notes={notes}
+                                                key={i}
+                                                index={i}
+                                                onClick={() =>
+                                                    setUserPlaybackProgress(
+                                                        timestampToMilliseconds(
+                                                            note.timestamp
+                                                        )
+                                                    )
+                                                }
+                                            />
+                                        ))}
+                                        <h1 className="mt-5 mb-3 small-text">
+                                            Recently added tracks
+                                        </h1>
+                                        {recentData.map((song, i) => (
+                                            <RecentNote
+                                                key={i}
+                                                albumCoverURL={
+                                                    song.album.images[0].url
+                                                }
+                                                songTitle={song.name}
+                                                artist={song.artists[0].name}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <AlbumTab
