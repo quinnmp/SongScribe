@@ -240,7 +240,7 @@ function makeID(length) {
 function handleAuthURI() {
     var state = makeID(16);
     var scope =
-        "user-read-playback-state user-modify-playback-state user-read-private user-read-email user-read-recently-played";
+        "user-read-playback-state user-modify-playback-state user-read-private user-read-email";
 
     return (
         "https://accounts.spotify.com/authorize?" +
