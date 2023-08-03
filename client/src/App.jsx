@@ -40,7 +40,7 @@ function App() {
     const apiUrl =
         process.env.NODE_ENV === "development"
             ? "http://localhost:5000"
-            : "spotiscribe-api.onrender.com";
+            : "https://spotiscribe-api.onrender.com";
 
     useEffect(() => {
         function getPlaybackState() {
