@@ -11,6 +11,8 @@ import AlbumTab from "./components/AlbumTab.jsx";
 import RecentNote from "./components/RecentNote.jsx";
 import PlaybackControl from "./components/PlaybackControl.jsx";
 import ErrorModal from "./components/ErrorModal.jsx";
+import Header from "./components/Header.jsx";
+import Footer from "./components/Footer.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -422,7 +424,7 @@ function App() {
 
     return (
         <>
-            {playbackProgressString}
+            <Header />
             <div className="container">
                 <NavBar />
                 <div className="tab-content" id="myTabContent">
@@ -551,6 +553,7 @@ function App() {
                     />
                 </div>
             </div>
+            <Footer />
             <NoteModal tempTimeStamp={tempTimeStamp} />
             {notes.map((note, i) => (
                 <EditNoteModal

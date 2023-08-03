@@ -2,6 +2,10 @@ body {
     background: #191a19;
 }
 
+footer {
+    background: #163b1e;
+}
+
 hr,
 .vr {
     border: 1px solid #d8e9a8;
@@ -15,7 +19,8 @@ hr,
 
 h1,
 h2,
-h3 {
+h3,
+p {
     color: #d8e9a8;
 }
 
@@ -36,15 +41,24 @@ label {
     max-width: 25%;
 }
 
+.bi-github {
+    position: relative;
+    top: 10px;
+}
+
+.bi-github:hover {
+    fill: #191a19;
+}
+
 .nav-tabs {
-    border-color: #1e5128;
+    border-color: #163b1e;
     border-bottom-width: 3px;
 }
 
 .nav-link.active {
     color: #d8e9a8 !important;
-    background-color: #1e5128 !important;
-    border-color: #1e5128 !important;
+    background-color: #163b1e !important;
+    border-color: #163b1e !important;
 }
 
 .nav-link {
@@ -54,7 +68,7 @@ label {
 
 .nav-link:hover {
     color: #b0be89;
-    border-color: #1e5128 !important;
+    border-color: #163b1e !important;
     border-width: 3px !important;
 }
 
@@ -70,7 +84,7 @@ label {
 }
 
 .form-range::-webkit-slider-thumb {
-    background: #1e5128;
+    background: #163b1e;
 }
 
 .form-range::-webkit-slider-runnable-track {
@@ -78,7 +92,7 @@ label {
 }
 
 .custom-tooltip {
-    --bs-tooltip-bg: #1e5128;
+    --bs-tooltip-bg: #163b1e;
     --bs-tooltip-color: #d8e9a8;
 }
 
@@ -87,10 +101,10 @@ label {
 .pause-button,
 .pause-button:focus {
     background-color: #d8e9a8;
-    color: #1e5128;
+    color: #163b1e;
     padding: 0px;
     border-width: 5px;
-    border-color: #1e5128;
+    border-color: #163b1e;
 }
 
 .add-note-button:hover,
@@ -150,28 +164,32 @@ label {
 }
 
 .close-btn:hover {
-    color: #1e5128;
+    color: #163b1e;
     border-width: 4px;
-    border-color: #1e5128;
+    border-color: #163b1e;
 }
 
 .btn-primary {
-    color: #1e5128;
+    color: #163b1e;
     background-color: #d8e9a8;
     border-width: 4px;
-    border-color: #1e5128;
+    border-color: #163b1e;
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
     background-color: #191a19;
-    color: #1e5128;
-    border-color: #1e5128;
+    color: #163b1e;
+    border-color: #163b1e;
 }
 
 .modal-header,
 .modal-footer {
     border: 0px;
+}
+
+.main-nav {
+    background-color: #163b1e;
 }
 
 .small-text {
