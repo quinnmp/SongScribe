@@ -472,6 +472,11 @@ function App() {
                                         <h1 className="mt-5 mb-3 small-text">
                                             Recently added tracks
                                         </h1>
+                                        {recentData.length === 0 && (
+                                            <p>
+                                                No recent data. Happy Scribing!
+                                            </p>
+                                        )}
                                         {recentData.map((song, i) => (
                                             <RecentNote
                                                 key={i}
