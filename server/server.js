@@ -66,7 +66,7 @@ async function getAuth(code) {
         const data = qs.stringify({
             grant_type: "authorization_code",
             code: code,
-            redirect_uri: "http://localhost:5000/callback",
+            redirect_uri: "https://spotiscribe-api.onrender.com/callback",
         });
         const tokenURL = "https://accounts.spotify.com/api/token?" + data;
 
