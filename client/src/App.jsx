@@ -37,6 +37,11 @@ function App() {
     const [sliderProgress, setSliderProgress] = useState(-1);
     const songIDRef = useRef(songID);
 
+    const apiUrl =
+        process.env.NODE_ENV === "development"
+            ? "http://localhost:5000"
+            : "spotiscribe-api.onrender.com";
+
     useEffect(() => {
         function getPlaybackState() {
             console.log("Get playback state");
@@ -44,7 +49,7 @@ function App() {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
-            fetch("http://localhost:5000/api", requestOptions)
+            fetch(apiUrl + "/api", requestOptions)
                 .then((response) => {
                     return response.json();
                 })
@@ -312,7 +317,7 @@ function App() {
                         notes: notes,
                     }),
                 };
-                await fetch("http://localhost:5000/api", requestOptions)
+                await fetch(apiUrl + "/api", requestOptions)
                     .then((response) => {
                         return response.json();
                     })
@@ -375,7 +380,7 @@ function App() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ timeInMS: timestamp }),
         };
-        await fetch("http://localhost:5000/api", requestOptions)
+        await fetch(apiUrl + "/api", requestOptions)
             .then((response) => {
                 return response.json();
             })
@@ -388,7 +393,7 @@ function App() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ paused: paused }),
         };
-        await fetch("http://localhost:5000/playback-control", requestOptions)
+        await fetch(apiUrl + "/playback-control", requestOptions)
             .then((response) => {
                 return response.json();
             })
