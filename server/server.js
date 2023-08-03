@@ -242,7 +242,7 @@ function handleAuthURI() {
             response_type: "code",
             client_id: clientID,
             scope: scope,
-            redirect_uri: "http://localhost:5000/callback",
+            redirect_uri: "https://spotiscribe-api.onrender.com/callback",
             state: state,
         })
     );
