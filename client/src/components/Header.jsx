@@ -28,8 +28,11 @@ function Header() {
                             </svg>
                         </div>
                         <div className="col-5 ps-0">
-                            <h1>SpotiScribe [beta]</h1>
+                            <h1 className="text-nowrap">SpotiScribe</h1>
                         </div>
+                    </div>
+                    <div className="row">
+                        <h1 className="text-nowrap">[beta]</h1>
                     </div>
                 </div>
             </nav>
