@@ -74,6 +74,7 @@ function App() {
                                         data.spotify_player_data.item.id;
                                     handleShouldSubmit(tempID);
                                     setScrubbing(false);
+                                    setNotesUpdated(false);
                                     setNotes([]);
                                     setArtists([]);
                                     setAlbumArtists([]);
@@ -97,7 +98,7 @@ function App() {
                                     data.database_data.notes.length !== 0 &&
                                     !notesUpdated
                                 ) {
-                                    setNotes(data.database_data.notes);
+                                    await setNotes(data.database_data.notes);
                                     setNotesUpdated(true);
                                 }
                                 setPaused(!data.spotify_player_data.is_playing);
