@@ -9,7 +9,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 require("dotenv").config();
 
-const corsUrl = "https://spotiscribe.onrender.com";
+const corsUrl =
+    process.env.NODE_ENV === "development"
+        ? "http://127.0.0.1:5173"
+        : "https://spotiscribe.onrender.com";
 app.use(cors({ origin: corsUrl }));
 
 mongoose.connect(
@@ -66,7 +69,9 @@ async function getAuth(code) {
         const data = qs.stringify({
             grant_type: "authorization_code",
             code: code,
-            redirect_uri: "https://spotiscribe-api.onrender.com/callback",
+            redirect_uri: process.env.NODE_ENV
+                ? "http://localhost:5000/callback"
+                : "https://spotiscribe-api.onrender.com/callback",
         });
         const tokenURL = "https://accounts.spotify.com/api/token?" + data;
 
@@ -242,7 +247,9 @@ function handleAuthURI() {
             response_type: "code",
             client_id: clientID,
             scope: scope,
-            redirect_uri: "https://spotiscribe-api.onrender.com/callback",
+            redirect_uri: process.env.NODE_ENV
+                ? "http://localhost:5000/callback"
+                : "https://spotiscribe-api.onrender.com/callback",
             state: state,
         })
     );
