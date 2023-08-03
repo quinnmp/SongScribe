@@ -38,6 +38,8 @@ function App() {
     const [paused, setPaused] = useState(false);
     const [sliderProgress, setSliderProgress] = useState(-1);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
+    const [notesUpdated, setNotesUpdated] = useState(false);
     const songIDRef = useRef(songID);
     const apiUrl =
         process.env.NODE_ENV !== "production"
@@ -92,9 +94,11 @@ function App() {
                                 }
                                 if (
                                     notes.length === 0 &&
-                                    data.database_data.notes.length !== 0
+                                    data.database_data.notes.length !== 0 &&
+                                    !notesUpdated
                                 ) {
                                     setNotes(data.database_data.notes);
+                                    setNotesUpdated(true);
                                 }
                                 setPaused(!data.spotify_player_data.is_playing);
                                 setRecentData(data.recent_notes);
@@ -204,11 +208,8 @@ function App() {
 
         $(document).ready(function () {
             const handleResize = () => {
-                if (window.innerWidth < 768) {
-                    setIsMobile(true);
-                } else {
-                    setIsMobile(false);
-                }
+                setIsMobile(window.innerWidth < 768);
+                setIsLessThanXL(window.innerWidth < 1200);
             };
             window.addEventListener("resize", handleResize);
 
@@ -353,6 +354,7 @@ function App() {
         shouldSubmit,
         notes,
         sliderProgress,
+        notesUpdated,
     ]);
 
     class Note {
@@ -553,6 +555,7 @@ function App() {
                         tracklist={tracklist}
                         songsWithData={songsWithData}
                         albumReviews={albumReviews}
+                        isLessThanXL={isLessThanXL}
                     />
                 </div>
             </div>
