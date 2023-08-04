@@ -29,6 +29,7 @@ function App() {
     const [releaseDate, setReleaseDate] = useState("");
     const [notes, setNotes] = useState([]);
     const [scrubbing, setScrubbing] = useState(false);
+    const [uploadingNote, setUploadingNote] = useState(false);
     const [tracklist, setTracklist] = useState([]);
     const [albumReviews, setAlbumReviews] = useState([]);
     const [albumArtists, setAlbumArtists] = useState([]);
@@ -321,26 +322,32 @@ function App() {
 
         async function submitNote() {
             console.log("In submitNote. shouldSubmit is " + shouldSubmit);
-            if (shouldSubmit === true) {
-                setShouldSubmit(false);
-                handleShouldSubmit(songID);
-                const requestOptions = {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id: songID,
-                        quickSummary: $("#quick-summary-input").val(),
-                        review: $("#review-input").val(),
-                        notes: notes,
-                    }),
-                };
-                await fetch(apiUrl + "/api", requestOptions)
-                    .then((response) => {
-                        return response.json();
-                    })
-                    .then((data) => console.log(data));
+            if (!uploadingNote) {
+                if (shouldSubmit === true) {
+                    setUploadingNote(true);
+                    setShouldSubmit(false);
+                    handleShouldSubmit(songID);
+                    const requestOptions = {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: songID,
+                            quickSummary: $("#quick-summary-input").val(),
+                            review: $("#review-input").val(),
+                            notes: notes,
+                        }),
+                    };
+                    await fetch(apiUrl + "/api", requestOptions)
+                        .then((response) => {
+                            setUploadingNote(false);
+                            return response.json();
+                        })
+                        .then((data) => console.log(data));
+                } else {
+                    console.log("Submit sent too soon. Did not submit.");
+                }
             } else {
-                console.log("Submit sent too soon. Did not submit.");
+                console.log("Note currently being uploaded, rejected");
             }
         }
 
