@@ -442,10 +442,6 @@ function App() {
         <>
             <Header />
             <div className="container">
-                <h1>{scrubbing ? "True" : "False"}</h1>
-                <h1>{playbackProgress}</h1>
-                <h1>{sliderProgress}</h1>
-                <h1>{playbackProgressString}</h1>
                 <NavBar />
                 <div className="tab-content" id="myTabContent">
                     <div
