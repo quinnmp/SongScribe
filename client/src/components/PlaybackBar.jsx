@@ -16,6 +16,22 @@ function PlaybackBar(props) {
                 >
                     {props.playbackProgressString}
                 </h3>
+                <button
+                    type="button"
+                    className="btn add-note-button fw-bolder"
+                    style={{
+                        left:
+                            (props.playbackProgress / props.trackLength) *
+                            ($(".form-range").width() - 8 - 8),
+                        top: "150%",
+                        position: "absolute",
+                        width: "42px",
+                        height: "42px",
+                    }}
+                    onClick={props.backFiveOnClick}
+                >
+                    -5
+                </button>
                 <input
                     type="range"
                     className="form-range"

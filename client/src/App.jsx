@@ -405,8 +405,11 @@ function App() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ timeInMS: timestamp }),
         };
+        console.log("Making request for " + timestamp);
         await fetch(apiUrl + "/api", requestOptions)
             .then((response) => {
+                console.log("Got request for " + timestamp);
+                setScrubbing(false);
                 return response.json();
             })
             .then((data) => data);
@@ -439,6 +442,10 @@ function App() {
         <>
             <Header />
             <div className="container">
+                <h1>{scrubbing ? "True" : "False"}</h1>
+                <h1>{playbackProgress}</h1>
+                <h1>{sliderProgress}</h1>
+                <h1>{playbackProgressString}</h1>
                 <NavBar />
                 <div className="tab-content" id="myTabContent">
                     <div
@@ -520,6 +527,37 @@ function App() {
                                         playbackProgressString={
                                             playbackProgressString
                                         }
+                                        backFiveOnClick={() => {
+                                            setScrubbing(true);
+                                            setUserPlaybackProgress(
+                                                playbackProgress - 5000
+                                            );
+                                            setPlaybackProgress(
+                                                playbackProgress - 5000
+                                            );
+                                            setPlaybackProgressString(
+                                                Math.floor(
+                                                    (playbackProgress - 5000) /
+                                                        1000 /
+                                                        60
+                                                ) +
+                                                    ":" +
+                                                    (Math.floor(
+                                                        ((playbackProgress -
+                                                            5000) /
+                                                            1000) %
+                                                            60
+                                                    ) < 10
+                                                        ? "0"
+                                                        : "") +
+                                                    Math.floor(
+                                                        ((playbackProgress -
+                                                            5000) /
+                                                            1000) %
+                                                            60
+                                                    )
+                                            );
+                                        }}
                                     />
                                     <SongNoteArea />
                                 </div>

@@ -178,7 +178,7 @@ async function getRecentNoteData() {
             for (let i = scribe.songs.length - 1; i > 0; i--) {
                 const songData = await getSongData(scribe.songs[i].id);
                 recentNoteData.push(songData);
-                if (recentNoteData.length === 5) {
+                if (recentNoteData.length >= 5) {
                     break;
                 }
             }
