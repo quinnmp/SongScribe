@@ -11,8 +11,10 @@ function PlaybackBar(props) {
                             (props.playbackProgress / props.trackLength) *
                             ($(".form-range").width() - 8 - 8),
                         top: "60%",
+                        width: "42px",
                         position: "absolute",
                     }}
+                    className="text-center"
                 >
                     {props.playbackProgressString}
                 </h3>
