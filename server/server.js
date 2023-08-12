@@ -148,10 +148,49 @@ async function getAlbumData(id) {
                 Authorization: `Bearer ${accessToken}`,
             },
         });
+        response.data.tracks.items = await getUnlimitedTracklist(id);
         return response.data;
     } catch (e) {
         console.log(e.response.data);
     }
+}
+
+async function getUnlimitedTracklist(id) {
+    const apiURL = `https://api.spotify.com/v1/albums/` + id + `/tracks`;
+    let items = [];
+
+    const data = {
+        limit: 50,
+    };
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            params: data,
+        });
+        items = response.data.items;
+        let next = response.data.next;
+        while (next) {
+            try {
+                let secondaryResponse = await axios.get(next, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+                next = secondaryResponse.data.next;
+                items = items.concat(secondaryResponse.data.items);
+            } catch (e) {
+                console.log("Error in getting tracklist");
+                console.log(e);
+            }
+        }
+    } catch (e) {
+        console.log(e.response.data);
+    }
+
+    return items;
 }
 
 async function getSongData(id) {
