@@ -93,6 +93,38 @@ function App() {
                                     } else {
                                         $("#review-input").val("");
                                     }
+                                    if (
+                                        data.spotify_player_data.item
+                                            .disc_number === 1
+                                    ) {
+                                        setTrackNumber(
+                                            data.spotify_player_data.item
+                                                .track_number
+                                        );
+                                    } else {
+                                        console.log("DISC # MORE THAN 1");
+                                        for (
+                                            let i = 0;
+                                            i <
+                                            data.spotify_album_data.tracks.items
+                                                .length;
+                                            i++
+                                        ) {
+                                            console.log(
+                                                data.spotify_album_data.tracks
+                                                    .items[i].name
+                                            );
+                                            if (
+                                                data.spotify_player_data.item
+                                                    .name ===
+                                                data.spotify_album_data.tracks
+                                                    .items[i].name
+                                            ) {
+                                                setTrackNumber(i + 1);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                                 if (
                                     notes.length === 0 &&
@@ -159,9 +191,6 @@ function App() {
                                 setTotalTracks(
                                     data.spotify_player_data.item.album
                                         .total_tracks
-                                );
-                                setTrackNumber(
-                                    data.spotify_player_data.item.track_number
                                 );
                                 setSongTitle(
                                     data.spotify_player_data.item.name
