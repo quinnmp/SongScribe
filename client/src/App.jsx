@@ -102,7 +102,6 @@ function App() {
                                                 .track_number
                                         );
                                     } else {
-                                        console.log("DISC # MORE THAN 1");
                                         for (
                                             let i = 0;
                                             i <
