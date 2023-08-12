@@ -110,10 +110,6 @@ function App() {
                                                 .length;
                                             i++
                                         ) {
-                                            console.log(
-                                                data.spotify_album_data.tracks
-                                                    .items[i].name
-                                            );
                                             if (
                                                 data.spotify_player_data.item
                                                     .name ===
