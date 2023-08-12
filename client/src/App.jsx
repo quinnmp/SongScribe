@@ -46,8 +46,25 @@ function App() {
         process.env.NODE_ENV !== "production"
             ? "http://localhost:5000"
             : "https://songscribe-api.onrender.com";
+    const mainUrl =
+        process.env.NODE_ENV !== "production"
+            ? "http://127.0.0.1:5173"
+            : "https://songscribe.onrender.com";
 
     useEffect(() => {
+        console.log(window.location);
+        let urlCode = window.location.href.split("?code=");
+        if (urlCode.length > 1) {
+            console.log(urlCode[1]);
+            urlCode[1] = urlCode[1].slice(0, 64);
+            const queryParams = new URLSearchParams({ code: urlCode[1] });
+            const requestOptions = {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+            };
+            fetch(apiUrl + "/genius_callback?" + queryParams, requestOptions);
+            window.location = mainUrl;
+        }
         function getPlaybackState() {
             console.log("Get playback state");
             const requestOptions = {
@@ -624,6 +641,21 @@ function App() {
                         albumReviews={albumReviews}
                         isLessThanXL={isLessThanXL}
                     />
+                    <div
+                        id="rg_embed_link_3039923"
+                        className="rg_embed_link"
+                        data-song-id="3039923"
+                    >
+                        Read{" "}
+                        <a href="https://genius.com/Kendrick-lamar-humble-lyrics">
+                            “HUMBLE.” by Kendrick Lamar
+                        </a>{" "}
+                        on Genius
+                    </div>{" "}
+                    <script
+                        crossOrigin
+                        src="//genius.com/songs/3039923/embed.js"
+                    ></script>
                 </div>
             </div>
             <div className="mt-5 mb-5"></div>

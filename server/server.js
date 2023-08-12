@@ -55,12 +55,27 @@ const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
     "base64"
 );
 
+let geniusClientID = "";
+let geniusClientSecret = "";
+if (process.env.NODE_ENV !== "production") {
+    geniusClientID = process.env.LOCAL_GENIUS_API_ID;
+    geniusClientSecret = process.env.LOCAL_GENIUS_CLIENT_SECRET;
+} else {
+    geniusClientID = process.env.PRODUCTION_GENIUS_API_ID;
+    geniusClientSecret = process.env.PRODUCTION_GENIUS_CLIENT_SECRET;
+}
+
 let accessToken = "";
 let refreshToken = "";
+
+let geniusAuthAttempted = false;
+let geniusAccessToken = "";
 
 let albumData = "";
 let userData = "";
 let playerData = "";
+let lyricData = "";
+let playingSongID = "";
 let recentNoteData = [];
 let albumID = -1;
 
@@ -89,6 +104,37 @@ async function getAuth(code) {
         return {
             access_token: response.data.access_token,
             refresh_token: response.data.refresh_token,
+        };
+    } catch (e) {
+        console.log(e.response.data);
+    }
+}
+
+async function getGeniusAuth(code) {
+    console.log(code);
+    try {
+        const data = qs.stringify({
+            grant_type: "authorization_code",
+            code: code,
+            client_secret: geniusClientSecret,
+            client_id: geniusClientID,
+            redirect_uri: corsUrl,
+            response_type: "code",
+        });
+        const tokenURL = "https://api.genius.com/oauth/token?" + data;
+
+        const response = await axios.post(
+            tokenURL,
+            {},
+            {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            }
+        );
+        console.log(response.data);
+        return {
+            access_token: response.data.access_token,
         };
     } catch (e) {
         console.log(e.response.data);
@@ -241,6 +287,43 @@ async function getUserData() {
     }
 }
 
+async function getSongLyrics() {
+    const searchTerm =
+        playerData.item.artists[0].name + " " + playerData.item.name;
+    const apiURL = `https://api.genius.com/search?q=` + searchTerm;
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${geniusAccessToken}`,
+            },
+        });
+        try {
+            const secondaryResponse = await axios.get(
+                "https://api.genius.com" +
+                    response.data.response.hits[0].result.api_path,
+                {
+                    headers: {
+                        Authorization: `Bearer ${geniusAccessToken}`,
+                    },
+                }
+            );
+            try {
+                const tertiaryResponse = await axios.get(
+                    secondaryResponse.data.response.song.url
+                );
+                lyricData = tertiaryResponse.data;
+            } catch (e) {
+                console.log(e);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 async function seekToPosition(timeInMS) {
     const apiURL = `https://api.spotify.com/v1/me/player/seek`;
 
@@ -296,12 +379,41 @@ function handleAuthURI() {
     );
 }
 
+function handleGeniusAuthURI() {
+    const apiURL = `https://api.genius.com/oauth/authorize`;
+
+    var state = makeID(16);
+    scope = "";
+
+    geniusAuthAttempted = true;
+    return (
+        "https://api.genius.com/oauth/authorize?" +
+        qs.stringify({
+            response_type: "code",
+            client_id: geniusClientID,
+            scope: scope,
+            redirect_uri: corsUrl,
+            state: state,
+        })
+    );
+}
+
 app.get("/callback", async function (req, res) {
     console.log("GET /callback");
     let authData = await getAuth(req.query.code, req.query.state);
     if (authData) {
         accessToken = authData.access_token;
         refreshToken = authData.refresh_token;
+    }
+});
+
+app.get("/genius_callback", async function (req, res) {
+    console.log("GET /genius_callback");
+    let authData = await getGeniusAuth(req.query.code, req.query.state);
+    if (authData) {
+        geniusAccessToken = authData.access_token;
+    } else {
+        geniusAuthAttempted = false;
     }
 });
 
@@ -312,6 +424,15 @@ app.get("/api", async (req, res) => {
         let spotify_auth_uri = handleAuthURI();
         res.send(JSON.stringify({ uri: spotify_auth_uri }));
         return;
+    } else if (geniusAccessToken === "") {
+        if (!geniusAuthAttempted) {
+            console.log("No Genius token, retrieving");
+            let genius_auth_uri = handleGeniusAuthURI();
+            res.send(JSON.stringify({ uri: genius_auth_uri }));
+            return;
+        } else {
+            axios.get("http://localhost:5000/genius_callback");
+        }
     } else {
         try {
             if (!userScribeArray) {
@@ -340,10 +461,13 @@ app.get("/api", async (req, res) => {
                     review: "",
                     notes: [],
                 };
-                let playingSongID = "";
                 let albumReviews = [];
                 let songsWithData = [];
-                playingSongID = playerData.item.id;
+                if (playingSongID !== playerData.item.id) {
+                    playingSongID = playerData.item.id;
+                    console.log("New song, getting lyric data");
+                    getSongLyrics();
+                }
                 await userScribeArray.forEach((scribe) => {
                     if (scribe.id === userData.id) {
                         scribe.songs.forEach((song) => {
@@ -369,6 +493,7 @@ app.get("/api", async (req, res) => {
                         album_reviews: albumReviews,
                         songs_with_data: songsWithData,
                         recent_notes: recentNoteData,
+                        song_lyrics_html: lyricData,
                     })
                 );
             } else {
