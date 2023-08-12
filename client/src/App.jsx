@@ -524,32 +524,28 @@ function App() {
                                             playbackProgressString
                                         }
                                         backFiveOnClick={() => {
+                                            let newProgress = Math.max(
+                                                0,
+                                                playbackProgress - 5000
+                                            );
                                             setScrubbing(true);
                                             setUserPlaybackProgress(
-                                                playbackProgress - 5000
+                                                newProgress
                                             );
-                                            setPlaybackProgress(
-                                                playbackProgress - 5000
-                                            );
+                                            setPlaybackProgress(newProgress);
                                             setPlaybackProgressString(
                                                 Math.floor(
-                                                    (playbackProgress - 5000) /
-                                                        1000 /
-                                                        60
+                                                    newProgress / 1000 / 60
                                                 ) +
                                                     ":" +
                                                     (Math.floor(
-                                                        ((playbackProgress -
-                                                            5000) /
-                                                            1000) %
+                                                        (newProgress / 1000) %
                                                             60
                                                     ) < 10
                                                         ? "0"
                                                         : "") +
                                                     Math.floor(
-                                                        ((playbackProgress -
-                                                            5000) /
-                                                            1000) %
+                                                        (newProgress / 1000) %
                                                             60
                                                     )
                                             );
