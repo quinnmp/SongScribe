@@ -79,6 +79,8 @@ let playingSongID = "";
 let recentNoteData = [];
 let albumID = -1;
 
+let currentlyProcessingNote = false;
+
 async function getAuth(code) {
     try {
         const data = qs.stringify({
@@ -565,78 +567,83 @@ app.put("/playback-control", async (req, res) => {
 });
 
 app.post("/api", async (req, res) => {
-    console.log(req.body);
-    let reqData = await req.body;
-    if (!reqData.quickSummary) {
-        console.log("No summary");
-    }
-    if (!reqData.review) {
-        console.log("No review");
-    }
-    if (reqData.notes.length === 0) {
-        console.log("No notes");
-    }
-    await retrieveUserScribes();
-    const userData = await getUserData();
-    let containsUser = false;
-    let containsSong = false;
-    userScribeArray.forEach((scribe) => {
-        if (scribe.id === userData.id) {
-            containsUser = true;
+    if (!currentlyProcessingNote) {
+        currentlyProcessingNote = true;
+        console.log(req.body);
+        let reqData = await req.body;
+        if (!reqData.quickSummary) {
+            console.log("No summary");
         }
-    });
-    if (!containsUser) {
-        const userScribe = new UserScribe({
-            id: userData.id,
-            songs: [],
-        });
-        await userScribe.save();
+        if (!reqData.review) {
+            console.log("No review");
+        }
+        if (reqData.notes.length === 0) {
+            console.log("No notes");
+        }
         await retrieveUserScribes();
-    }
-    let noteEmpty =
-        (!reqData.quickSummary &&
-            !reqData.review &&
-            reqData.notes.length === 0) ||
-        !reqData.id;
-    let skipPush = false;
-    userScribeArray.forEach(async (scribe) => {
-        if (scribe.id === userData.id) {
-            console.log("Account found!");
-            scribe.songs.forEach(async (song, index) => {
-                if (song.id === req.body.id) {
-                    if (noteEmpty) {
-                        console.log("Empty note, deleting song");
-                        scribe.songs.splice(index, 1);
-                        skipPush = true;
-                    } else {
-                        console.log("Song exists already, updating info");
-                        containsSong = true;
-                        song.quickSummary = req.body.quickSummary;
-                        song.review = req.body.review;
-                        song.notes = req.body.notes;
-                    }
-                }
-            });
-            if (!containsSong && !skipPush) {
-                console.log("Song does not exist, pushing new data");
-                if (noteEmpty) {
-                    console.log("Empty note, POST rejected");
-                    res.send(JSON.stringify({ status: "failure" }));
-                    return;
-                }
-                scribe.songs.push({
-                    id: req.body.id,
-                    quickSummary: req.body.quickSummary,
-                    review: req.body.review,
-                    notes: req.body.notes,
-                });
+        const userData = await getUserData();
+        let containsUser = false;
+        let containsSong = false;
+        userScribeArray.forEach((scribe) => {
+            if (scribe.id === userData.id) {
+                containsUser = true;
             }
-            await scribe.save();
+        });
+        if (!containsUser) {
+            const userScribe = new UserScribe({
+                id: userData.id,
+                songs: [],
+            });
+            await userScribe.save();
             await retrieveUserScribes();
-            await getRecentNoteData();
-            res.send(JSON.stringify({ status: "success" }));
         }
-    });
+        let noteEmpty =
+            (!reqData.quickSummary &&
+                !reqData.review &&
+                reqData.notes.length === 0) ||
+            !reqData.id;
+        let skipPush = false;
+        userScribeArray.forEach(async (scribe) => {
+            if (scribe.id === userData.id) {
+                console.log("Account found!");
+                scribe.songs.forEach(async (song, index) => {
+                    if (song.id === req.body.id) {
+                        if (noteEmpty) {
+                            console.log("Empty note, deleting song");
+                            scribe.songs.splice(index, 1);
+                            skipPush = true;
+                        } else {
+                            console.log("Song exists already, updating info");
+                            containsSong = true;
+                            song.quickSummary = req.body.quickSummary;
+                            song.review = req.body.review;
+                            song.notes = req.body.notes;
+                        }
+                    }
+                });
+                if (!containsSong && !skipPush) {
+                    console.log("Song does not exist, pushing new data");
+                    if (noteEmpty) {
+                        console.log("Empty note, POST rejected");
+                        currentlyProcessingNote = false;
+                        res.send(JSON.stringify({ status: "failure" }));
+                        return;
+                    }
+                    scribe.songs.push({
+                        id: req.body.id,
+                        quickSummary: req.body.quickSummary,
+                        review: req.body.review,
+                        notes: req.body.notes,
+                    });
+                }
+                await scribe.save();
+                await retrieveUserScribes();
+                await getRecentNoteData();
+                currentlyProcessingNote = false;
+                res.send(JSON.stringify({ status: "success" }));
+            }
+        });
+    }
 });
 
 const PORT = process.env.PORT || 5000;
