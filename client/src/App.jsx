@@ -42,6 +42,7 @@ function App() {
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
     const [notesUpdated, setNotesUpdated] = useState(false);
     const [lyricHTML, setLyricHTML] = useState(``);
+    const [showLyrics, setShowLyrics] = useState(true);
     const songIDRef = useRef(songID);
     const apiUrl =
         process.env.NODE_ENV !== "production"
@@ -331,6 +332,10 @@ function App() {
                         $(".save-note").click();
                     }
                 });
+            $("#showLyrics").change(function () {
+                var isChecked = $(this).prop("checked");
+                setShowLyrics(isChecked);
+            });
             notes.map((note, i) => {
                 let buttonID = "#edit-note" + i;
                 let formID = "#note-form" + i;
@@ -497,141 +502,188 @@ function App() {
                         aria-labelledby="song-tab"
                         tabIndex="0"
                     >
-                        <div className="row mt-5">
-                            <div className="col-md-3 col-4 word-wrap">
-                                <AlbumSidebar
-                                    albumCoverURL={albumCoverURL}
-                                    trackNumber={trackNumber}
-                                    totalTracks={totalTracks}
-                                    songTitle={songTitle}
-                                    albumTitle={albumTitle}
-                                    artists={artists}
-                                    releaseDate={releaseDate}
-                                />
-
-                                {!isMobile && (
-                                    <>
-                                        {notes.map((note, i) => (
-                                            <SidebarNote
-                                                note={note}
-                                                notes={notes}
-                                                key={i}
-                                                index={i}
-                                                onClick={() =>
-                                                    setUserPlaybackProgress(
-                                                        timestampToMilliseconds(
-                                                            note.timestamp
-                                                        )
-                                                    )
-                                                }
-                                            />
-                                        ))}
-                                        <h1 className="mt-5 mb-3 small-text">
-                                            Recently added tracks
-                                        </h1>
-                                        {recentData.length === 0 && (
-                                            <p>
-                                                No recent data. Happy Scribing!
-                                            </p>
-                                        )}
-                                        {recentData.map((song, i) => (
-                                            <RecentNote
-                                                key={i}
-                                                albumCoverURL={
-                                                    song.album.images[0].url
-                                                }
-                                                songTitle={song.name}
-                                                artist={song.artists[0].name}
-                                            />
-                                        ))}
-                                    </>
-                                )}
-                            </div>
-                            <div className="col-md-9 col-8 px-md-5 px-sm-3">
-                                <NoteArea
-                                    notes={notes}
-                                    trackLength={trackLength}
-                                    leftSpace={
-                                        (playbackProgress / trackLength) *
-                                        ($(".form-range").width() - 8 - 8)
-                                    }
-                                    noteOnClick={(timestamp) =>
-                                        setUserPlaybackProgress(
-                                            timestampToMilliseconds(timestamp)
-                                        )
-                                    }
-                                    addNoteTimestamp={setNoteTimeStamp}
-                                />
+                        <div className="form-check mt-4 mb-1">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                value=""
+                                id="showLyrics"
+                            ></input>
+                            <label
+                                className="form-check-label"
+                                htmlFor="showLyrics"
+                            >
+                                Show Lyrics? [Experimental]
+                            </label>
+                        </div>
+                        <div className="row">
+                            <div className={showLyrics ? "col-6" : "col-12"}>
                                 <div className="row">
-                                    <PlaybackBar
-                                        playbackProgress={playbackProgress}
-                                        trackLength={trackLength}
-                                        playbackProgressString={
-                                            playbackProgressString
-                                        }
-                                        backFiveOnClick={() => {
-                                            let newProgress = Math.max(
-                                                0,
-                                                playbackProgress - 5000
-                                            );
-                                            setScrubbing(true);
-                                            setUserPlaybackProgress(
-                                                newProgress
-                                            );
-                                            setPlaybackProgress(newProgress);
-                                            setPlaybackProgressString(
-                                                Math.floor(
-                                                    newProgress / 1000 / 60
-                                                ) +
-                                                    ":" +
-                                                    (Math.floor(
-                                                        (newProgress / 1000) %
-                                                            60
-                                                    ) < 10
-                                                        ? "0"
-                                                        : "") +
-                                                    Math.floor(
-                                                        (newProgress / 1000) %
-                                                            60
+                                    <div className="col-md-3 col-4 word-wrap">
+                                        <AlbumSidebar
+                                            albumCoverURL={albumCoverURL}
+                                            trackNumber={trackNumber}
+                                            totalTracks={totalTracks}
+                                            songTitle={songTitle}
+                                            albumTitle={albumTitle}
+                                            artists={artists}
+                                            releaseDate={releaseDate}
+                                        />
+
+                                        {!isMobile && !showLyrics && (
+                                            <>
+                                                {notes.map((note, i) => (
+                                                    <SidebarNote
+                                                        note={note}
+                                                        notes={notes}
+                                                        key={i}
+                                                        index={i}
+                                                        onClick={() =>
+                                                            setUserPlaybackProgress(
+                                                                timestampToMilliseconds(
+                                                                    note.timestamp
+                                                                )
+                                                            )
+                                                        }
+                                                    />
+                                                ))}
+                                                <h1 className="mt-5 mb-3 small-text">
+                                                    Recently added tracks
+                                                </h1>
+                                                {recentData.length === 0 && (
+                                                    <p>
+                                                        No recent data. Happy
+                                                        Scribing!
+                                                    </p>
+                                                )}
+                                                {recentData.map((song, i) => (
+                                                    <RecentNote
+                                                        key={i}
+                                                        albumCoverURL={
+                                                            song.album.images[0]
+                                                                .url
+                                                        }
+                                                        songTitle={song.name}
+                                                        artist={
+                                                            song.artists[0].name
+                                                        }
+                                                    />
+                                                ))}
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="col-md-9 col-8 px-md-5 px-sm-3">
+                                        <NoteArea
+                                            notes={notes}
+                                            trackLength={trackLength}
+                                            leftSpace={
+                                                (playbackProgress /
+                                                    trackLength) *
+                                                ($(".form-range").width() -
+                                                    8 -
+                                                    8)
+                                            }
+                                            noteOnClick={(timestamp) =>
+                                                setUserPlaybackProgress(
+                                                    timestampToMilliseconds(
+                                                        timestamp
                                                     )
-                                            );
-                                        }}
-                                    />
-                                    <SongNoteArea />
+                                                )
+                                            }
+                                            addNoteTimestamp={setNoteTimeStamp}
+                                        />
+                                        <div className="row">
+                                            <PlaybackBar
+                                                playbackProgress={
+                                                    playbackProgress
+                                                }
+                                                trackLength={trackLength}
+                                                playbackProgressString={
+                                                    playbackProgressString
+                                                }
+                                                backFiveOnClick={() => {
+                                                    let newProgress = Math.max(
+                                                        0,
+                                                        playbackProgress - 5000
+                                                    );
+                                                    setScrubbing(true);
+                                                    setUserPlaybackProgress(
+                                                        newProgress
+                                                    );
+                                                    setPlaybackProgress(
+                                                        newProgress
+                                                    );
+                                                    setPlaybackProgressString(
+                                                        Math.floor(
+                                                            newProgress /
+                                                                1000 /
+                                                                60
+                                                        ) +
+                                                            ":" +
+                                                            (Math.floor(
+                                                                (newProgress /
+                                                                    1000) %
+                                                                    60
+                                                            ) < 10
+                                                                ? "0"
+                                                                : "") +
+                                                            Math.floor(
+                                                                (newProgress /
+                                                                    1000) %
+                                                                    60
+                                                            )
+                                                    );
+                                                }}
+                                            />
+                                            <SongNoteArea />
+                                        </div>
+                                    </div>
+                                    {(isMobile || showLyrics) && (
+                                        <div className="row">
+                                            <div className="col-12 word-wrap">
+                                                {notes.map((note, i) => (
+                                                    <SidebarNote
+                                                        note={note}
+                                                        notes={notes}
+                                                        key={i}
+                                                        index={i}
+                                                        onClick={() =>
+                                                            setUserPlaybackProgress(
+                                                                timestampToMilliseconds(
+                                                                    note.timestamp
+                                                                )
+                                                            )
+                                                        }
+                                                    />
+                                                ))}
+                                                <h1 className="mt-5 mb-3 small-text">
+                                                    Recently added tracks
+                                                </h1>
+                                                {recentData.map((song, i) => (
+                                                    <RecentNote
+                                                        key={i}
+                                                        albumCoverURL={
+                                                            song.album.images[0]
+                                                                .url
+                                                        }
+                                                        songTitle={song.name}
+                                                        artist={
+                                                            song.artists[0].name
+                                                        }
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            {isMobile && (
-                                <div className="row">
-                                    <div className="col-12 word-wrap">
-                                        {notes.map((note, i) => (
-                                            <SidebarNote
-                                                note={note}
-                                                notes={notes}
-                                                key={i}
-                                                index={i}
-                                                onClick={() =>
-                                                    setUserPlaybackProgress(
-                                                        timestampToMilliseconds(
-                                                            note.timestamp
-                                                        )
-                                                    )
-                                                }
-                                            />
-                                        ))}
-                                        <h1 className="mt-5 mb-3 small-text">
-                                            Recently added tracks
-                                        </h1>
-                                        {recentData.map((song, i) => (
-                                            <RecentNote
-                                                key={i}
-                                                albumCoverURL={
-                                                    song.album.images[0].url
-                                                }
-                                                songTitle={song.name}
-                                                artist={song.artists[0].name}
-                                            />
-                                        ))}
-                                    </div>
+                            {showLyrics && (
+                                <div className="col-6 mt-5">
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: "<p>" + lyricHTML + "</p>",
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -645,11 +697,6 @@ function App() {
                         songsWithData={songsWithData}
                         albumReviews={albumReviews}
                         isLessThanXL={isLessThanXL}
-                    />
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html: "<p>" + lyricHTML + "</p>",
-                        }}
                     />
                 </div>
             </div>

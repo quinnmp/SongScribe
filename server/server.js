@@ -322,19 +322,13 @@ async function getSongLyrics() {
                         lyricSection = lyricSection.replace(/<span[^>]*>/g, "");
                         lyricSection = lyricSection.replace("</a>", "");
                         lyricSection = lyricSection.replace("</span>", "");
-                        lyricSection = lyricSection.replace(
-                            /<span.*?<\/span>/g,
-                            ""
-                        );
                         fullLyrics = fullLyrics
                             .concat(lyricSection)
                             .concat("<br />");
                     }
                 });
-                console.log(fullLyrics);
                 fullLyrics = await fullLyrics.replace('"', '\\"');
                 fullLyrics = await fullLyrics.replace("\\", "\\\\");
-                console.log(fullLyrics);
                 lyricData = { fullLyricHTML: fullLyrics };
             } catch (e) {
                 console.log(e);

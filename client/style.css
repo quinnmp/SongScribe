@@ -104,6 +104,11 @@ a {
     background: #d8e9a8;
 }
 
+.form-check-input[type="checkbox"] {
+    background-color: #163b1e;
+    border-color: #163b1e;
+}
+
 .custom-tooltip {
     --bs-tooltip-bg: #163b1e;
     --bs-tooltip-color: #d8e9a8;
