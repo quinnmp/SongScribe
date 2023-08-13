@@ -55,15 +55,8 @@ const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
     "base64"
 );
 
-let geniusClientID = "";
-let geniusClientSecret = "";
-if (process.env.NODE_ENV !== "production") {
-    geniusClientID = process.env.LOCAL_GENIUS_API_ID;
-    geniusClientSecret = process.env.LOCAL_GENIUS_CLIENT_SECRET;
-} else {
-    geniusClientID = process.env.PRODUCTION_GENIUS_API_ID;
-    geniusClientSecret = process.env.PRODUCTION_GENIUS_CLIENT_SECRET;
-}
+let geniusClientID = process.env.GENIUS_API_ID;
+let geniusClientSecret = process.env.GENIUS_CLIENT_SECRET;
 
 let accessToken = "";
 let refreshToken = "";
