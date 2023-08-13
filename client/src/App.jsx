@@ -506,8 +506,8 @@ function App() {
                             <input
                                 className="form-check-input"
                                 type="checkbox"
-                                value=""
                                 id="showLyrics"
+                                defaultChecked="true"
                             ></input>
                             <label
                                 className="form-check-label"
