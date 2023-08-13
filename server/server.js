@@ -13,6 +13,10 @@ const corsUrl =
     process.env.NODE_ENV !== "production"
         ? "http://127.0.0.1:5173"
         : "https://songscribe.onrender.com";
+const mainUrl =
+    process.env.NODE_ENV !== "production"
+        ? "http://localhost:5000"
+        : "https://songscribe-api.onrender.com";
 app.use(cors({ origin: corsUrl }));
 
 mongoose.connect(
@@ -443,7 +447,7 @@ app.get("/api", async (req, res) => {
             res.send(JSON.stringify({ uri: genius_auth_uri }));
             return;
         } else {
-            axios.get("http://localhost:5000/genius_callback");
+            axios.get(mainUrl + "/genius_callback");
         }
     } else {
         try {
