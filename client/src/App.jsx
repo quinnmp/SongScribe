@@ -41,6 +41,7 @@ function App() {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
     const [notesUpdated, setNotesUpdated] = useState(false);
+    const [lyricHTML, setLyricHTML] = useState(``);
     const songIDRef = useRef(songID);
     const apiUrl =
         process.env.NODE_ENV !== "production"
@@ -52,10 +53,8 @@ function App() {
             : "https://songscribe.onrender.com";
 
     useEffect(() => {
-        console.log(window.location);
         let urlCode = window.location.href.split("?code=");
         if (urlCode.length > 1) {
-            console.log(urlCode[1]);
             urlCode[1] = urlCode[1].slice(0, 64);
             const queryParams = new URLSearchParams({ code: urlCode[1] });
             const requestOptions = {
@@ -199,6 +198,12 @@ function App() {
                                 setAlbumCoverURL(
                                     data.spotify_player_data.item.album
                                         .images[0].url
+                                );
+                                console.log(
+                                    data.song_lyrics_html.fullLyricHTML
+                                );
+                                setLyricHTML(
+                                    data.song_lyrics_html.fullLyricHTML
                                 );
                                 setTotalTracks(
                                     data.spotify_player_data.item.album
@@ -642,20 +647,10 @@ function App() {
                         isLessThanXL={isLessThanXL}
                     />
                     <div
-                        id="rg_embed_link_3039923"
-                        className="rg_embed_link"
-                        data-song-id="3039923"
-                    >
-                        Read{" "}
-                        <a href="https://genius.com/Kendrick-lamar-humble-lyrics">
-                            “HUMBLE.” by Kendrick Lamar
-                        </a>{" "}
-                        on Genius
-                    </div>{" "}
-                    <script
-                        crossOrigin
-                        src="//genius.com/songs/3039923/embed.js"
-                    ></script>
+                        dangerouslySetInnerHTML={{
+                            __html: "<p>" + lyricHTML + "</p>",
+                        }}
+                    />
                 </div>
             </div>
             <div className="mt-5 mb-5"></div>

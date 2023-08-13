@@ -111,7 +111,6 @@ async function getAuth(code) {
 }
 
 async function getGeniusAuth(code) {
-    console.log(code);
     try {
         const data = qs.stringify({
             grant_type: "authorization_code",
@@ -132,7 +131,6 @@ async function getGeniusAuth(code) {
                 },
             }
         );
-        console.log(response.data);
         return {
             access_token: response.data.access_token,
         };
@@ -289,7 +287,7 @@ async function getUserData() {
 
 async function getSongLyrics() {
     const searchTerm =
-        playerData.item.artists[0].name + " " + playerData.item.name;
+        playerData.item.name + " " + playerData.item.artists[0].name;
     const apiURL = `https://api.genius.com/search?q=` + searchTerm;
 
     try {
@@ -312,7 +310,32 @@ async function getSongLyrics() {
                 const tertiaryResponse = await axios.get(
                     secondaryResponse.data.response.song.url
                 );
-                lyricData = tertiaryResponse.data;
+                lyricDataArray = tertiaryResponse.data.split(
+                    "<div data-lyrics-container="
+                );
+                let fullLyrics = "";
+                await lyricDataArray.map((lyricSection, index) => {
+                    if (index !== 0) {
+                        lyricSection = lyricSection.split(/>(.*)/s)[1];
+                        lyricSection = lyricSection.split("</div>")[0];
+                        lyricSection = lyricSection.replace(/<a[^>]*>/g, "");
+                        lyricSection = lyricSection.replace(/<span[^>]*>/g, "");
+                        lyricSection = lyricSection.replace("</a>", "");
+                        lyricSection = lyricSection.replace("</span>", "");
+                        lyricSection = lyricSection.replace(
+                            /<span.*?<\/span>/g,
+                            ""
+                        );
+                        fullLyrics = fullLyrics
+                            .concat(lyricSection)
+                            .concat("<br />");
+                    }
+                });
+                console.log(fullLyrics);
+                fullLyrics = await fullLyrics.replace('"', '\\"');
+                fullLyrics = await fullLyrics.replace("\\", "\\\\");
+                console.log(fullLyrics);
+                lyricData = { fullLyricHTML: fullLyrics };
             } catch (e) {
                 console.log(e);
             }
@@ -466,7 +489,7 @@ app.get("/api", async (req, res) => {
                 if (playingSongID !== playerData.item.id) {
                     playingSongID = playerData.item.id;
                     console.log("New song, getting lyric data");
-                    getSongLyrics();
+                    await getSongLyrics();
                 }
                 await userScribeArray.forEach((scribe) => {
                     if (scribe.id === userData.id) {
