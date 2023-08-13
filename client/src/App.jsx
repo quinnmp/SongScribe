@@ -62,8 +62,10 @@ function App() {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
-            fetch(apiUrl + "/genius_callback?" + queryParams, requestOptions);
-            window.location = mainUrl;
+            fetch(
+                apiUrl + "/genius_callback?" + queryParams,
+                requestOptions
+            ).then((window.location = mainUrl));
         }
         function getPlaybackState() {
             console.log("Get playback state");
