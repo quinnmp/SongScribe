@@ -11,7 +11,7 @@ require("dotenv").config();
 
 const corsUrl =
     process.env.NODE_ENV !== "production"
-        ? "http://127.0.0.1:5173"
+        ? "http://localhost:5173"
         : "https://songscribe.onrender.com";
 const mainUrl =
     process.env.NODE_ENV !== "production"
@@ -290,6 +290,7 @@ async function getSongLyrics() {
     const apiURL = `https://api.genius.com/search?q=` + searchTerm;
 
     try {
+        console.log("Making first Genius GET");
         const response = await axios.get(apiURL, {
             headers: {
                 Authorization: `Bearer ${geniusAccessToken}`,

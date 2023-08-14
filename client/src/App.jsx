@@ -50,7 +50,7 @@ function App() {
             : "https://songscribe-api.onrender.com";
     const mainUrl =
         process.env.NODE_ENV !== "production"
-            ? "http://127.0.0.1:5173"
+            ? "http://localhost:5173"
             : "https://songscribe.onrender.com";
 
     useEffect(() => {
