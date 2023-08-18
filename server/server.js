@@ -69,12 +69,17 @@ let geniusAuthAttempted = false;
 let geniusAccessToken = "";
 
 let albumData = "";
+let queueAlbumData = "";
+let queueSongData = "";
 let userData = "";
 let playerData = "";
 let lyricData = "";
+let queueLyricData = "";
 let playingSongID = "";
 let recentNoteData = [];
 let albumID = -1;
+
+let newSong = false;
 
 let currentlyProcessingNote = false;
 
@@ -284,13 +289,17 @@ async function getUserData() {
     }
 }
 
-async function getSongLyrics() {
-    const searchTerm =
-        playerData.item.name + " " + playerData.item.artists[0].name;
+async function getSongLyrics(queue) {
+    let searchTerm = "";
+    if (queue) {
+        searchTerm = queueSongData.name + " " + queueSongData.artists[0].name;
+    } else {
+        searchTerm =
+            playerData.item.name + " " + playerData.item.artists[0].name;
+    }
     const apiURL = `https://api.genius.com/search?q=` + searchTerm;
 
     try {
-        console.log("Making first Genius GET");
         const response = await axios.get(apiURL, {
             headers: {
                 Authorization: `Bearer ${geniusAccessToken}`,
@@ -329,7 +338,7 @@ async function getSongLyrics() {
                 });
                 fullLyrics = await fullLyrics.replace('"', '\\"');
                 fullLyrics = await fullLyrics.replace("\\", "\\\\");
-                lyricData = { fullLyricHTML: fullLyrics };
+                return { fullLyricHTML: fullLyrics };
             } catch (e) {
                 console.log(e);
             }
@@ -415,6 +424,32 @@ function handleGeniusAuthURI() {
     );
 }
 
+async function handleQueue() {
+    const apiURL = `https://api.spotify.com/v1/me/player/queue`;
+
+    try {
+        const response = await axios.get(apiURL, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        if (
+            response.data.queue.length !== 0 &&
+            response.data.queue[0].album.id
+        ) {
+            console.log("Updating queue data");
+            queueAlbumData = await getAlbumData(
+                response.data.queue[0].album.id
+            );
+            queueSongData = response.data.queue[0];
+            queueLyricData = await getSongLyrics(true);
+        }
+        return response.data;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 app.get("/callback", async function (req, res) {
     console.log("GET /callback");
     let authData = await getAuth(req.query.code, req.query.state);
@@ -465,9 +500,18 @@ app.get("/api", async (req, res) => {
             playerData = await getPlayerState();
             if (playerData !== "") {
                 if (playerData.item.album.id !== albumID) {
-                    console.log("Getting album data");
-                    albumData = await getAlbumData(playerData.item.album.id);
-                    albumID = playerData.item.album.id;
+                    if (
+                        queueAlbumData &&
+                        playerData.item.album.id === queueAlbumData.id
+                    ) {
+                        albumData = queueAlbumData;
+                    } else {
+                        console.log("Getting album data");
+                        albumData = await getAlbumData(
+                            playerData.item.album.id
+                        );
+                    }
+                    albumID = albumData.id;
                 }
                 let trackIDArray = [];
                 albumData.tracks.items.map((track) => {
@@ -481,9 +525,19 @@ app.get("/api", async (req, res) => {
                 let albumReviews = [];
                 let songsWithData = [];
                 if (playingSongID !== playerData.item.id) {
-                    playingSongID = playerData.item.id;
-                    console.log("New song, getting lyric data");
-                    await getSongLyrics();
+                    newSong = true;
+                    if (
+                        queueLyricData &&
+                        queueSongData.id === playerData.item.id
+                    ) {
+                        lyricData = queueLyricData;
+                        playingSongID = queueSongData.id;
+                        queueLyricData = "";
+                    } else {
+                        console.log("New song, getting lyric data");
+                        lyricData = await getSongLyrics(false);
+                        playingSongID = playerData.item.id;
+                    }
                 }
                 await userScribeArray.forEach((scribe) => {
                     if (scribe.id === userData.id) {
@@ -502,6 +556,10 @@ app.get("/api", async (req, res) => {
                         });
                     }
                 });
+                if (newSong) {
+                    newSong = false;
+                    handleQueue();
+                }
                 res.send(
                     JSON.stringify({
                         spotify_player_data: playerData,
