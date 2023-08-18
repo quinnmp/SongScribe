@@ -202,9 +202,6 @@ function App() {
                                     data.spotify_player_data.item.album
                                         .images[0].url
                                 );
-                                console.log(
-                                    data.song_lyrics_html.fullLyricHTML
-                                );
                                 setLyricHTML(
                                     data.song_lyrics_html.fullLyricHTML
                                 );
