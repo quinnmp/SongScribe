@@ -316,6 +316,86 @@ function App() {
                     ]);
                     $("#noteInput").val("");
                 });
+            $("#song-copy-to-clipboard")
+                .off("click")
+                .click(async function () {
+                    let copyText =
+                        "# " +
+                        songTitle +
+                        "\n" +
+                        "## Quick Summary\n" +
+                        $("#quick-summary-input").val() +
+                        "\n\n" +
+                        "## Review\n" +
+                        $("#review-input").val() +
+                        "\n\n" +
+                        "## Notes\n";
+                    if (notes.length > 0) {
+                        notes.map((note) => {
+                            copyText = copyText.concat(
+                                "- " + note.timestamp + ": "
+                            );
+                            copyText = copyText.concat(note.note + "\n");
+                        });
+                    } else {
+                        copyText = copyText.concat("No notes.");
+                    }
+                    navigator.clipboard.writeText(copyText);
+                });
+            $("#album-copy-to-clipboard")
+                .off("click")
+                .click(async function () {
+                    let trackData = "";
+                    let copyText = "";
+                    copyText = copyText.concat("# " + albumTitle + "\n");
+                    copyText = copyText.concat("# ");
+                    albumArtists.map(
+                        (artist, i) =>
+                            (copyText = copyText.concat(
+                                i !== albumArtists.length - 1
+                                    ? artist + ", "
+                                    : artist + "\n"
+                            ))
+                    );
+                    copyText = copyText.concat("# " + releaseDate + "\n\n");
+                    copyText = copyText.concat("# Annotated Tracklist \n");
+                    tracklist.map((track) => {
+                        if (songsWithData.includes(track.id)) {
+                            trackData =
+                                albumReviews[
+                                    albumReviews.findIndex(
+                                        (obj) => obj.id === track.id
+                                    )
+                                ];
+                            copyText = copyText.concat(
+                                "# " +
+                                    track.name +
+                                    "\n" +
+                                    "## Quick Summary\n" +
+                                    trackData.quick_summary +
+                                    "\n\n" +
+                                    "## Review\n" +
+                                    trackData.review +
+                                    "\n\n" +
+                                    "## Notes\n"
+                            );
+                            if (trackData.notes.length > 0) {
+                                trackData.notes.map((note) => {
+                                    copyText = copyText.concat(
+                                        "- " + note.timestamp + ": "
+                                    );
+                                    copyText = copyText.concat(
+                                        note.note + "\n"
+                                    );
+                                });
+                            } else {
+                                copyText = copyText.concat("No notes.");
+                            }
+                            copyText = copyText.concat("\n");
+                        }
+                    });
+                    navigator.clipboard.writeText(copyText);
+                });
             $("#save-song-data")
                 .off("click")
                 .click(
@@ -388,18 +468,18 @@ function App() {
                         }),
                     };
                     let noteEmpty =
-                      (!$("#quick-summary-input").val() &&
-                        !$("#review-input").val() &&
-                        notes.length === 0) ||
-                      !songID;
+                        (!$("#quick-summary-input").val() &&
+                            !$("#review-input").val() &&
+                            notes.length === 0) ||
+                        !songID;
                     if (!noteEmpty) {
-                    await fetch(apiUrl + "/api", requestOptions)
-                        .then((response) => {
-                            setUploadingNote(false);
-                            return response.json();
-                        })
-                        .then((data) => console.log(data));
-                      }
+                        await fetch(apiUrl + "/api", requestOptions)
+                            .then((response) => {
+                                setUploadingNote(false);
+                                return response.json();
+                            })
+                            .then((data) => console.log(data));
+                    }
                 } else {
                     console.log("Submit sent too soon. Did not submit.");
                 }
@@ -553,6 +633,14 @@ function App() {
                                                         }
                                                     />
                                                 ))}
+                                                <div className="d-flex justify-content-center">
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        id="song-copy-to-clipboard"
+                                                    >
+                                                        Save scribe to clipboard
+                                                    </button>
+                                                </div>
                                                 <h1 className="mt-5 mb-3 small-text">
                                                     Recently added tracks
                                                 </h1>
@@ -662,6 +750,14 @@ function App() {
                                                         }
                                                     />
                                                 ))}
+                                                <div className="d-flex justify-content-center">
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        id="song-copy-to-clipboard"
+                                                    >
+                                                        Save scribe to clipboard
+                                                    </button>
+                                                </div>
                                                 <h1 className="mt-5 mb-3 small-text">
                                                     Recently added tracks
                                                 </h1>

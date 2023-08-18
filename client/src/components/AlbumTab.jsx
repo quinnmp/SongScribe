@@ -132,6 +132,14 @@ function AlbumTab(props) {
                     </>
                 ))}
                 <hr className="mx-3 mb-5" />
+                <div className="d-flex justify-content-center">
+                    <button
+                        className="btn btn-primary"
+                        id="album-copy-to-clipboard"
+                    >
+                        Save album scribes to clipboard
+                    </button>
+                </div>
             </div>
         </>
     );

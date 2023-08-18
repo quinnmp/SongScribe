@@ -549,6 +549,8 @@ app.get("/api", async (req, res) => {
                                 albumReviews.push({
                                     id: song.id,
                                     quick_summary: song.quickSummary,
+                                    review: song.review,
+                                    notes: song.notes,
                                     review_count: song.notes.length,
                                 });
                                 songsWithData.push(song.id);
