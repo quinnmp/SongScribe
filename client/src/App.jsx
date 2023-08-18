@@ -390,12 +390,19 @@ function App() {
                             notes: notes,
                         }),
                     };
+                    let noteEmpty =
+                      (!$("#quick-summary-input").val() &&
+                        !$("#review-input").val() &&
+                        notes.length === 0) ||
+                      !songID;
+                    if (!noteEmpty) {
                     await fetch(apiUrl + "/api", requestOptions)
                         .then((response) => {
                             setUploadingNote(false);
                             return response.json();
                         })
                         .then((data) => console.log(data));
+                      }
                 } else {
                     console.log("Submit sent too soon. Did not submit.");
                 }
