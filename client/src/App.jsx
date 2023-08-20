@@ -202,9 +202,13 @@ function App() {
                                     data.spotify_player_data.item.album
                                         .images[0].url
                                 );
-                                setLyricHTML(
-                                    data.song_lyrics_html.fullLyricHTML
-                                );
+                                if (data.song_lyrics_html) {
+                                    setLyricHTML(
+                                        data.song_lyrics_html.fullLyricHTML
+                                    );
+                                } else {
+                                    setLyricHTML("No lyrics found.");
+                                }
                                 setTotalTracks(
                                     data.spotify_player_data.item.album
                                         .total_tracks
