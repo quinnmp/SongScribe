@@ -319,17 +319,44 @@ function App() {
             $("#song-copy-to-clipboard")
                 .off("click")
                 .click(async function () {
-                    let copyText =
-                        "# " +
-                        songTitle +
-                        "\n" +
+                    let copyText = "# " + songTitle + "\n";
+
+                    // Check for featured artists
+                    artists.map((artist) => {
+                        if (!albumArtists.includes(artist)) {
+                            if (copyText[copyText.length - 1] === "\n") {
+                                copyText = copyText + "## Featuring ";
+                            }
+                            copyText = copyText.concat(artist + ", ");
+                        }
+                    });
+                    if (copyText[copyText.length - 1] !== "\n") {
+                        copyText = copyText.substring(0, copyText.length - 2);
+                        copyText = copyText.concat("\n");
+                    }
+
+                    // Check for album artists who aren't on this song
+                    albumArtists.map((artist) => {
+                        if (!artists.includes(artist)) {
+                            if (copyText[copyText.length - 1] === "\n") {
+                                copyText = copyText + "## Without ";
+                            }
+                            copyText = copyText.concat(artist + ", ");
+                        }
+                    });
+                    if (copyText[copyText.length - 1] !== "\n") {
+                        copyText = copyText.substring(0, copyText.length - 2);
+                        copyText = copyText.concat("\n");
+                    }
+                    copyText = copyText.concat(
                         "## Quick Summary\n" +
-                        $("#quick-summary-input").val() +
-                        "\n\n" +
-                        "## Review\n" +
-                        $("#review-input").val() +
-                        "\n\n" +
-                        "## Notes\n";
+                            $("#quick-summary-input").val() +
+                            "\n\n" +
+                            "## Review\n" +
+                            $("#review-input").val() +
+                            "\n\n" +
+                            "## Notes\n"
+                    );
                     if (notes.length > 0) {
                         notes.map((note) => {
                             copyText = copyText.concat(
@@ -359,7 +386,7 @@ function App() {
                     );
                     copyText = copyText.concat("# " + releaseDate + "\n\n");
                     copyText = copyText.concat("# Annotated Tracklist \n");
-                    tracklist.map((track) => {
+                    tracklist.map((track, i) => {
                         if (songsWithData.includes(track.id)) {
                             trackData =
                                 albumReviews[
@@ -368,10 +395,52 @@ function App() {
                                     )
                                 ];
                             copyText = copyText.concat(
-                                "# " +
-                                    track.name +
-                                    "\n" +
-                                    "## Quick Summary\n" +
+                                "# " + track.name + "\n"
+                            );
+                            let songArtists = [];
+                            tracklist[i].artists.map((artist) => {
+                                songArtists.push(artist.name);
+                            });
+
+                            // Check for featured artists
+                            songArtists.map((artist) => {
+                                if (!albumArtists.includes(artist)) {
+                                    if (
+                                        copyText[copyText.length - 1] === "\n"
+                                    ) {
+                                        copyText = copyText + "## Featuring ";
+                                    }
+                                    copyText = copyText.concat(artist + ", ");
+                                }
+                            });
+                            if (copyText[copyText.length - 1] !== "\n") {
+                                copyText = copyText.substring(
+                                    0,
+                                    copyText.length - 2
+                                );
+                                copyText = copyText.concat("\n");
+                            }
+
+                            // Check for album artists who aren't on this song
+                            albumArtists.map((artist) => {
+                                if (!songArtists.includes(artist)) {
+                                    if (
+                                        copyText[copyText.length - 1] === "\n"
+                                    ) {
+                                        copyText = copyText + "## Without ";
+                                    }
+                                    copyText = copyText.concat(artist + ", ");
+                                }
+                            });
+                            if (copyText[copyText.length - 1] !== "\n") {
+                                copyText = copyText.substring(
+                                    0,
+                                    copyText.length - 2
+                                );
+                                copyText = copyText.concat("\n");
+                            }
+                            copyText = copyText.concat(
+                                "## Quick Summary\n" +
                                     trackData.quick_summary +
                                     "\n\n" +
                                     "## Review\n" +
