@@ -588,7 +588,7 @@ function App() {
             if (tempID === songIDRef.current) {
                 setShouldSubmit(true);
             }
-        }, 2000);
+        }, 10000);
     }
 
     useEffect(() => {
