@@ -306,44 +306,33 @@ async function getSongLyrics(queue) {
             },
         });
         try {
+            console.log("Getting song Lyrics");
             const secondaryResponse = await axios.get(
-                "https://api.genius.com" +
-                    response.data.response.hits[0].result.api_path,
-                {
-                    headers: {
-                        Authorization: `Bearer ${geniusAccessToken}`,
-                    },
-                }
+                response.data.response.hits[0].result.url
             );
-            try {
-                const tertiaryResponse = await axios.get(
-                    secondaryResponse.data.response.song.url
-                );
-                lyricDataArray = tertiaryResponse.data.split(
-                    "<div data-lyrics-container="
-                );
-                let fullLyrics = "";
-                await lyricDataArray.map((lyricSection, index) => {
-                    if (index !== 0) {
-                        lyricSection = lyricSection.split(/>(.*)/s)[1];
-                        lyricSection = lyricSection.split("</div>")[0];
-                        lyricSection = lyricSection.replace(/<a[^>]*>/g, "");
-                        lyricSection = lyricSection.replace(/<span[^>]*>/g, "");
-                        lyricSection = lyricSection.replace("</a>", "");
-                        lyricSection = lyricSection.replace("</span>", "");
-                        fullLyrics = fullLyrics
-                            .concat(lyricSection)
-                            .concat("<br />");
-                    }
-                });
-                fullLyrics = await fullLyrics.replace('"', '\\"');
-                fullLyrics = await fullLyrics.replace("\\", "\\\\");
-                return { fullLyricHTML: fullLyrics };
-            } catch (e) {
-                console.log(e);
-            }
+            console.log("Response recieved");
+            lyricDataArray = secondaryResponse.data.split(
+                "<div data-lyrics-container="
+            );
+            let fullLyrics = "";
+            await lyricDataArray.map((lyricSection, index) => {
+                if (index !== 0) {
+                    lyricSection = lyricSection.split(/>(.*)/s)[1];
+                    lyricSection = lyricSection.split("</div>")[0];
+                    lyricSection = lyricSection.replace(/<a[^>]*>/g, "");
+                    lyricSection = lyricSection.replace(/<span[^>]*>/g, "");
+                    lyricSection = lyricSection.replace("</a>", "");
+                    lyricSection = lyricSection.replace("</span>", "");
+                    fullLyrics = fullLyrics
+                        .concat(lyricSection)
+                        .concat("<br />");
+                }
+            });
+            fullLyrics = await fullLyrics.replace('"', '\\"');
+            fullLyrics = await fullLyrics.replace("\\", "\\\\");
+            return { fullLyricHTML: fullLyrics };
         } catch (e) {
-            console.log(e);
+            console.log("Song lyrics not found");
         }
     } catch (e) {
         console.log(e);
