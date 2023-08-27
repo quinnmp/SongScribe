@@ -87,9 +87,9 @@ function App() {
                                 if (
                                     data.spotify_player_data.item.id != songID
                                 ) {
+                                    setSongID(data.spotify_player_data.item.id);
                                     console.log("New song, clearing data");
                                     await submitNote();
-                                    setSongID(data.spotify_player_data.item.id);
                                     let tempID =
                                         data.spotify_player_data.item.id;
                                     handleShouldSubmit(tempID);
@@ -552,6 +552,10 @@ function App() {
                                 return response.json();
                             })
                             .then((data) => console.log(data));
+                    } else {
+                        setUploadingNote(false);
+                        console.log("Empty note, rejected");
+                        return;
                     }
                 } else {
                     console.log("Submit sent too soon. Did not submit.");
