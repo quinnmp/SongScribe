@@ -671,11 +671,25 @@ app.post("/api", async (req, res) => {
                             scribe.songs.splice(index, 1);
                             skipPush = true;
                         } else {
-                            console.log("Song exists already, updating info");
                             containsSong = true;
-                            song.quickSummary = req.body.quickSummary;
-                            song.review = req.body.review;
-                            song.notes = req.body.notes;
+                            if (
+                                song.quickSummary === req.body.quickSummary &&
+                                song.review === req.body.review &&
+                                JSON.stringify(song.notes) ===
+                                    JSON.stringify(req.body.notes)
+                            ) {
+                                console.log("No new data, POST rejected");
+                                currentlyProcessingNote = false;
+                                res.send(JSON.stringify({ status: "failure" }));
+                                return;
+                            } else {
+                                console.log(
+                                    "Song exists already, updating info"
+                                );
+                                song.quickSummary = req.body.quickSummary;
+                                song.review = req.body.review;
+                                song.notes = req.body.notes;
+                            }
                         }
                     }
                 });
@@ -697,8 +711,11 @@ app.post("/api", async (req, res) => {
                 await scribe.save();
                 await retrieveUserScribes();
                 await getRecentNoteData();
-                currentlyProcessingNote = false;
-                res.send(JSON.stringify({ status: "success" }));
+                if (currentlyProcessingNote) {
+                    currentlyProcessingNote = false;
+                    console.log("Sending success");
+                    res.send(JSON.stringify({ status: "success" }));
+                }
             }
         });
     }
