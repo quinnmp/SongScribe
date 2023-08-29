@@ -30,6 +30,20 @@ function NavBar() {
                         Album
                     </button>
                 </li>
+                <li className="nav-item" role="presentation">
+                    <button
+                        className="nav-link"
+                        id="disconnect-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#disconnect-tab-pane"
+                        type="button"
+                        role="tab"
+                        aria-controls="disconnect-tab-pane"
+                        aria-selected="false"
+                    >
+                        Disconnect
+                    </button>
+                </li>
             </ul>
         </>
     );

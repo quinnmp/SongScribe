@@ -13,6 +13,8 @@ import PlaybackControl from "./components/PlaybackControl.jsx";
 import ErrorModal from "./components/ErrorModal.jsx";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
+import DisconnectTab from "./components/DisconnectTab.jsx";
+import LoggedOutModal from "./components/LoggedOutModal.jsx";
 
 function App() {
     const [songID, setSongID] = useState("");
@@ -642,6 +644,15 @@ function App() {
             .then((data) => data);
     }
 
+    function sendLogoutRequest() {
+        const requestOptions = {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        };
+        const apiUrlLogout = apiUrl + "/logout";
+        fetch(apiUrlLogout, requestOptions);
+    }
+
     function setNoteTimeStamp() {
         setTempTimeStamp(playbackProgressString);
     }
@@ -877,6 +888,15 @@ function App() {
                         albumReviews={albumReviews}
                         isLessThanXL={isLessThanXL}
                     />
+                    <DisconnectTab
+                        onClick={() => {
+                            sendLogoutRequest();
+                            let loggedOutModalTriggerButton = $(
+                                "#loggedOutModalTriggerButton"
+                            );
+                            loggedOutModalTriggerButton.click();
+                        }}
+                    />
                 </div>
             </div>
             <div className="mt-5 mb-5"></div>
@@ -895,7 +915,8 @@ function App() {
                 paused={paused}
                 onClick={() => controlPlayback()}
             />
-            <ErrorModal></ErrorModal>
+            <ErrorModal />
+            <LoggedOutModal />
         </>
     );
 }

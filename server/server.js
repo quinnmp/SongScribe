@@ -80,6 +80,7 @@ let recentNoteData = [];
 let albumID = -1;
 
 let newSong = false;
+let loggedOut = false;
 
 let currentlyProcessingNote = false;
 
@@ -460,120 +461,126 @@ app.get("/genius_callback", async function (req, res) {
 
 app.get("/api", async (req, res) => {
     console.log("GET /api");
-    if (accessToken === "") {
-        console.log("No token, retrieving");
-        let spotify_auth_uri = handleAuthURI();
-        res.send(JSON.stringify({ uri: spotify_auth_uri }));
-        return;
-    } else if (geniusAccessToken === "") {
-        if (!geniusAuthAttempted) {
-            console.log("No Genius token, retrieving");
-            let genius_auth_uri = handleGeniusAuthURI();
-            res.send(JSON.stringify({ uri: genius_auth_uri }));
+    if (!loggedOut) {
+        if (accessToken === "") {
+            console.log("No token, retrieving");
+            let spotify_auth_uri = handleAuthURI();
+            res.send(JSON.stringify({ uri: spotify_auth_uri }));
             return;
-        } else {
-            axios.get(mainUrl + "/genius_callback");
-        }
-    } else {
-        try {
-            if (!userScribeArray) {
-                console.log("Retrieving database data");
-                await retrieveUserScribes();
-            }
-            if (userData === "") {
-                console.log("Getting user data");
-                userData = await getUserData();
-                recentNoteData = await getRecentNoteData();
-            }
-            console.log("Getting player data");
-            playerData = await getPlayerState();
-            if (playerData !== "") {
-                if (playerData.item.album.id !== albumID) {
-                    if (
-                        queueAlbumData &&
-                        playerData.item.album.id === queueAlbumData.id
-                    ) {
-                        albumData = queueAlbumData;
-                    } else {
-                        console.log("Getting album data");
-                        albumData = await getAlbumData(
-                            playerData.item.album.id
-                        );
-                    }
-                    albumID = albumData.id;
-                }
-                let trackIDArray = [];
-                albumData.tracks.items.map((track) => {
-                    trackIDArray.push(track.id);
-                });
-                let databaseData = {
-                    quickSummary: "",
-                    review: "",
-                    notes: [],
-                };
-                let albumReviews = [];
-                let songsWithData = [];
-                if (playingSongID !== playerData.item.id) {
-                    newSong = true;
-                    if (
-                        queueLyricData &&
-                        queueSongData.id === playerData.item.id
-                    ) {
-                        lyricData = queueLyricData;
-                        playingSongID = queueSongData.id;
-                        queueLyricData = "";
-                    } else {
-                        console.log("New song, getting lyric data");
-                        lyricData = await getSongLyrics(false);
-                        playingSongID = playerData.item.id;
-                    }
-                }
-                await userScribeArray.forEach((scribe) => {
-                    if (scribe.id === userData.id) {
-                        scribe.songs.forEach((song) => {
-                            if (song.id === playingSongID) {
-                                databaseData = song;
-                            }
-                            if (trackIDArray.includes(song.id)) {
-                                albumReviews.push({
-                                    id: song.id,
-                                    quick_summary: song.quickSummary,
-                                    review: song.review,
-                                    notes: song.notes,
-                                    review_count: song.notes.length,
-                                });
-                                songsWithData.push(song.id);
-                            }
-                        });
-                    }
-                });
-                if (newSong) {
-                    newSong = false;
-                    handleQueue();
-                }
-                res.send(
-                    JSON.stringify({
-                        spotify_player_data: playerData,
-                        spotify_album_data: albumData,
-                        database_data: databaseData,
-                        album_reviews: albumReviews,
-                        songs_with_data: songsWithData,
-                        recent_notes: recentNoteData,
-                        song_lyrics_html: lyricData,
-                    })
-                );
+        } else if (geniusAccessToken === "") {
+            if (!geniusAuthAttempted) {
+                console.log("No Genius token, retrieving");
+                let genius_auth_uri = handleGeniusAuthURI();
+                res.send(JSON.stringify({ uri: genius_auth_uri }));
+                return;
             } else {
-                res.send(
-                    JSON.stringify({ status: "failure, no active device" })
-                );
+                axios.get(mainUrl + "/genius_callback");
             }
-        } catch (e) {
-            console.log(
-                "Token is expired or something else went wrong in the retrieval process"
-            );
-            console.log(e);
-            accessToken = await getRefreshedToken(refreshToken);
-            res.send(JSON.stringify({ status: "failure" }));
+        } else {
+            try {
+                if (!userScribeArray) {
+                    console.log("Retrieving database data");
+                    await retrieveUserScribes();
+                }
+                if (userData === "") {
+                    console.log("Getting user data");
+                    userData = await getUserData();
+                    recentNoteData = await getRecentNoteData();
+                }
+                console.log("Getting player data");
+                playerData = await getPlayerState();
+                if (playerData !== "") {
+                    if (playerData.item.album.id !== albumID) {
+                        if (
+                            queueAlbumData &&
+                            playerData.item.album.id === queueAlbumData.id
+                        ) {
+                            albumData = queueAlbumData;
+                        } else {
+                            console.log("Getting album data");
+                            albumData = await getAlbumData(
+                                playerData.item.album.id
+                            );
+                        }
+                        albumID = albumData.id;
+                    }
+                    let trackIDArray = [];
+                    albumData.tracks.items.map((track) => {
+                        trackIDArray.push(track.id);
+                    });
+                    let databaseData = {
+                        quickSummary: "",
+                        review: "",
+                        notes: [],
+                    };
+                    let albumReviews = [];
+                    let songsWithData = [];
+                    if (playingSongID !== playerData.item.id) {
+                        newSong = true;
+                        if (
+                            queueLyricData &&
+                            queueSongData.id === playerData.item.id
+                        ) {
+                            lyricData = queueLyricData;
+                            playingSongID = queueSongData.id;
+                            queueLyricData = "";
+                        } else {
+                            console.log("New song, getting lyric data");
+                            lyricData = await getSongLyrics(false);
+                            playingSongID = playerData.item.id;
+                        }
+                    }
+                    await userScribeArray.forEach((scribe) => {
+                        if (scribe.id === userData.id) {
+                            scribe.songs.forEach((song) => {
+                                if (song.id === playingSongID) {
+                                    databaseData = song;
+                                }
+                                if (trackIDArray.includes(song.id)) {
+                                    albumReviews.push({
+                                        id: song.id,
+                                        quick_summary: song.quickSummary,
+                                        review: song.review,
+                                        notes: song.notes,
+                                        review_count: song.notes.length,
+                                    });
+                                    songsWithData.push(song.id);
+                                }
+                            });
+                        }
+                    });
+                    if (newSong) {
+                        newSong = false;
+                        handleQueue();
+                    }
+                    res.send(
+                        JSON.stringify({
+                            spotify_player_data: playerData,
+                            spotify_album_data: albumData,
+                            database_data: databaseData,
+                            album_reviews: albumReviews,
+                            songs_with_data: songsWithData,
+                            recent_notes: recentNoteData,
+                            song_lyrics_html: lyricData,
+                        })
+                    );
+                } else {
+                    res.send(
+                        JSON.stringify({ status: "failure, no active device" })
+                    );
+                }
+            } catch (e) {
+                if (loggedOut) {
+                    console.log(
+                        "Token is expired or something else went wrong in the retrieval process"
+                    );
+                    console.log(e);
+                    accessToken = await getRefreshedToken(refreshToken);
+                    res.send(JSON.stringify({ status: "failure" }));
+                } else {
+                    console.log("User logged out.");
+                }
+            }
         }
     }
 });
@@ -708,6 +715,13 @@ app.post("/api", async (req, res) => {
             }
         });
     }
+});
+
+app.get("/logout", async (req, res) => {
+    console.log("GET /logout");
+    userData = "";
+    accessToken = "";
+    loggedOut = true;
 });
 
 const PORT = process.env.PORT || 5000;

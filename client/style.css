@@ -236,6 +236,11 @@ a {
     height: 64px;
 }
 
-#errorModalTriggerButton {
+#errorModalTriggerButton,
+#loggedOutModalTriggerButton {
     display: none;
+}
+
+#disconnect-tab-pane {
+    height: 50vh;
 }
