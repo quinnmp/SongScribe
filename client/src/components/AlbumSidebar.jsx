@@ -2,7 +2,7 @@ function AlbumSidebar(props) {
     return (
         <>
             <img
-                className="img-fluid m-2 rounded"
+                className="img-fluid m-2"
                 src={props.albumCoverURL}
                 alt="album cover"
                 id="album-cover"

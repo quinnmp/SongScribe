@@ -9,7 +9,7 @@ function AlbumTab(props) {
                 tabIndex="0"
             >
                 <img
-                    className="img-fluid rounded mx-auto mt-5 mb-3 d-block"
+                    className="img-fluid mx-auto mt-5 mb-3 d-block"
                     src={props.albumCoverURL}
                     alt="album cover"
                     id="album-page-cover"

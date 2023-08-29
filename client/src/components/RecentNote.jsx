@@ -4,7 +4,7 @@ function RecentNote(props) {
             <div className="row mb-3">
                 <div className="col-4">
                     <img
-                        className="img-fluid rounded"
+                        className="img-fluid"
                         src={props.albumCoverURL}
                         alt="album cover"
                     />
