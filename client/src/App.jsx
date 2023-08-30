@@ -87,7 +87,8 @@ function App() {
                         try {
                             if (data.spotify_player_data.progress_ms) {
                                 if (
-                                    data.spotify_player_data.item.id != songID
+                                    data.spotify_player_data.item.id !=
+                                    songIDRef.current
                                 ) {
                                     setSongID(data.spotify_player_data.item.id);
                                     console.log("New song, clearing data");

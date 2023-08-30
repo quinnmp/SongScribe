@@ -657,6 +657,7 @@ app.post("/api", async (req, res) => {
                 reqData.notes.length === 0) ||
             !reqData.id;
         let skipPush = false;
+        let currentlyProcessingNoteFlag = true;
         userScribeArray.forEach(async (scribe) => {
             if (scribe.id === userData.id) {
                 console.log("Account found!");
@@ -675,7 +676,11 @@ app.post("/api", async (req, res) => {
                                     JSON.stringify(req.body.notes)
                             ) {
                                 console.log("No new data, POST rejected");
-                                currentlyProcessingNote = false;
+                                setTimeout(
+                                    () => (currentlyProcessingNote = false),
+                                    10000
+                                );
+                                currentlyProcessingNoteFlag = false;
                                 res.send(JSON.stringify({ status: "failure" }));
                                 return;
                             } else {
@@ -693,7 +698,11 @@ app.post("/api", async (req, res) => {
                     console.log("Song does not exist, pushing new data");
                     if (noteEmpty) {
                         console.log("Empty note, POST rejected");
-                        currentlyProcessingNote = false;
+                        setTimeout(
+                            () => (currentlyProcessingNote = false),
+                            10000
+                        );
+                        currentlyProcessingNoteFlag = false;
                         res.send(JSON.stringify({ status: "failure" }));
                         return;
                     }
@@ -704,16 +713,20 @@ app.post("/api", async (req, res) => {
                         notes: req.body.notes,
                     });
                 }
-                await scribe.save();
-                await retrieveUserScribes();
-                await getRecentNoteData();
-                if (currentlyProcessingNote) {
-                    currentlyProcessingNote = false;
+                if (currentlyProcessingNoteFlag) {
+                    await scribe.save();
+                    await retrieveUserScribes();
+                    await getRecentNoteData();
+                    setTimeout(() => (currentlyProcessingNote = false), 10000);
+                    currentlyProcessingNoteFlag = false;
                     console.log("Sending success");
                     res.send(JSON.stringify({ status: "success" }));
                 }
             }
         });
+    } else {
+        console.log("Currently processing note");
+        res.send(JSON.stringify({ status: "failure" }));
     }
 });
 
