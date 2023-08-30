@@ -12,8 +12,8 @@ function NoteArea(props) {
                     className="col-md-10 col-8 align-self-center"
                     style={{ position: "relative" }}
                 >
-                    {props.notes.map((note) => (
-                        <>
+                    {props.notes.map((note, i) => (
+                        <div key={i}>
                             <br />
                             <button
                                 type="button"
@@ -53,7 +53,7 @@ function NoteArea(props) {
                                     />
                                 </svg>
                             </button>
-                        </>
+                        </div>
                     ))}
                     <br />
                     <button

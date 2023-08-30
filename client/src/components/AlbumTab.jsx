@@ -26,7 +26,7 @@ function AlbumTab(props) {
                 </div>
                 <h1 className="mb-4">{props.releaseDate}</h1>
                 {props.tracklist.map((track, i) => (
-                    <>
+                    <div key={i}>
                         <hr className="mx-3" />
                         <div className="row">
                             <div className="col-md-1 col-2">
@@ -129,7 +129,7 @@ function AlbumTab(props) {
                                 )}
                             </div>
                         </div>
-                    </>
+                    </div>
                 ))}
                 <hr className="mx-3 mb-5" />
                 <div className="d-flex justify-content-center">
