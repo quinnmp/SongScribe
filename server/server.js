@@ -570,7 +570,7 @@ app.get("/api", async (req, res) => {
                     );
                 }
             } catch (e) {
-                if (loggedOut) {
+                if (!loggedOut) {
                     console.log(
                         "Token is expired or something else went wrong in the retrieval process"
                     );
