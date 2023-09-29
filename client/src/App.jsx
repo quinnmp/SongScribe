@@ -722,7 +722,7 @@ function App() {
                                                         }
                                                     />
                                                 ))}
-                                                <div className="d-flex justify-content-center">
+                                                <div className="d-flex justify-content-center mt-3">
                                                     <button
                                                         className="btn btn-primary"
                                                         id="song-copy-to-clipboard"
@@ -839,7 +839,7 @@ function App() {
                                                         }
                                                     />
                                                 ))}
-                                                <div className="d-flex justify-content-center">
+                                                <div className="d-flex justify-content-center mt-5">
                                                     <button
                                                         className="btn btn-primary"
                                                         id="song-copy-to-clipboard"
