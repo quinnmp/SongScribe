@@ -1,4 +1,4 @@
-import {useEffect, useState, useRef} from "react";
+import {useEffect, useState} from "react";
 
 // Components
 import AlbumSidebar from "./components/AlbumSidebar.jsx";
@@ -18,8 +18,6 @@ import Footer from "./components/Footer.jsx";
 import DisconnectTab from "./components/DisconnectTab.jsx";
 import LoggedOutModal from "./components/LoggedOutModal.jsx";
 
-// Utils
-
 function App() {
     // Initialize Components
     const [songID, setSongID] = useState("");
@@ -36,21 +34,20 @@ function App() {
     const [releaseDate, setReleaseDate] = useState("");
     const [notes, setNotes] = useState([]);
     const [scrubbing, setScrubbing] = useState(false);
-    const [uploadingNote, setUploadingNote] = useState(false);
     const [tracklist, setTracklist] = useState([]);
     const [albumReviews, setAlbumReviews] = useState([]);
     const [albumArtists, setAlbumArtists] = useState([]);
     const [songsWithData, setSongsWithData] = useState([]);
     const [recentData, setRecentData] = useState([]);
-    const [shouldSubmit, setShouldSubmit] = useState(false);
     const [paused, setPaused] = useState(false);
     const [sliderProgress, setSliderProgress] = useState(-1);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
-    const [notesUpdated, setNotesUpdated] = useState(false);
     const [lyricHTML, setLyricHTML] = useState(``);
     const [showLyrics, setShowLyrics] = useState(true);
-    const songIDRef = useRef(songID);
+    const [processingPlayback, setProcessingPlayback] = useState(false);
+
+    // Set up URLs
     const apiUrl =
         process.env.NODE_ENV !== "production"
             ? "http://localhost:5000"
@@ -61,10 +58,11 @@ function App() {
             : "https://songscribe.onrender.com";
 
     useEffect(() => {
-        let urlCode = window.location.href.split("?code=");
-        if (urlCode.length > 1) {
-            urlCode[1] = urlCode[1].slice(0, 64);
-            const queryParams = new URLSearchParams({code: urlCode[1]});
+        // If we find ourselves on a page with a code param, we need to validate Genius
+        if (window.location.href.includes("?code=")) {
+            let urlCode = window.location.href.split("?code=");
+            urlCode = urlCode[1].slice(0, 64);
+            const queryParams = new URLSearchParams({code: urlCode});
             const requestOptions = {
                 method: "GET",
                 headers: {"Content-Type": "application/json"},
@@ -75,8 +73,15 @@ function App() {
             ).then((window.location = mainUrl));
         }
 
+        // Main playback state handler, called every second
         function getPlaybackState() {
+            if (processingPlayback) {
+                console.log("Loop overrun")
+                return;
+            }
             console.log("Get playback state");
+
+            // Make the Spotify request
             const requestOptions = {
                 method: "GET",
                 headers: {"Content-Type": "application/json"},
@@ -86,27 +91,85 @@ function App() {
                 .then((response) => {
                     return response.json();
                 })
-                .then(async (data) => {
+                .then((data) => {
+                    // If we received some URI in the response, we gotta go there
                     if (data.uri) {
                         window.location.replace(data.uri);
                     } else {
+                        setProcessingPlayback(true);
                         try {
+                            // If we got player progress, everything is connected
+                            // and the user is listening to music.
+                            // Update all data accordingly
                             if (data.spotify_player_data.progress_ms) {
+                                // If the response song ID is not our cached ID, we have a new song
+                                // Update song-specific data
                                 if (
                                     data.spotify_player_data.item.id !==
-                                    songIDRef.current
+                                    songID
                                 ) {
-                                    setSongID(data.spotify_player_data.item.id);
                                     console.log("New song, clearing data");
-                                    await submitNote();
-                                    let tempID =
-                                        data.spotify_player_data.item.id;
-                                    handleShouldSubmit(tempID);
+                                    // We want to submit automatically on song change
+                                    submitNote();
+
+                                    // Update song metadata
+                                    setSongID(data.spotify_player_data.item.id);
                                     setScrubbing(false);
-                                    setNotesUpdated(false);
-                                    setNotes([]);
-                                    setArtists([]);
-                                    setAlbumArtists([]);
+                                    setTrackLength(
+                                        data.spotify_player_data.item.duration_ms
+                                    );
+                                    setAlbumCoverURL(
+                                        data.spotify_player_data.item.album
+                                            .images[0].url
+                                    );
+                                    setTotalTracks(
+                                        data.spotify_player_data.item.album.total_tracks
+                                    );
+                                    setSongTitle(
+                                        data.spotify_player_data.item.name
+                                    );
+                                    setAlbumTitle(
+                                        data.spotify_player_data.item.album.name
+                                    )
+                                    setReleaseDate(
+                                        data.spotify_player_data.item.album
+                                            .release_date
+                                    );
+                                    setTracklist(
+                                        data.spotify_album_data.tracks.items
+                                    );
+                                    setAlbumReviews(data.album_reviews);
+                                    setSongsWithData(data.songs_with_data);
+
+                                    if (data.song_lyrics_html) {
+                                        setLyricHTML(
+                                            data.song_lyrics_html.fullLyricHTML
+                                        );
+                                    } else {
+                                        setLyricHTML("No lyrics found.");
+                                    }
+
+                                    if (artists.length === 0) {
+                                        let tempArtists = [];
+                                        data.spotify_player_data.item.artists.map(
+                                            (artist) => {
+                                                tempArtists.push(artist.name);
+                                            }
+                                        );
+                                        setArtists(tempArtists);
+                                    }
+
+                                    if (albumArtists.length === 0) {
+                                        let tempAlbumArtists = [];
+                                        data.spotify_album_data.artists.map(
+                                            (artist) => {
+                                                tempAlbumArtists.push(artist.name);
+                                            }
+                                        );
+                                        setAlbumArtists(tempAlbumArtists);
+                                    }
+
+                                    // Load user data for this song if it exists
                                     if (data.database_data.quickSummary) {
                                         $("#quick-summary-input").val(
                                             data.database_data.quickSummary
@@ -114,6 +177,8 @@ function App() {
                                     } else {
                                         $("#quick-summary-input").val("");
                                     }
+
+                                    console.log(data.database_data.review);
                                     if (data.database_data.review) {
                                         $("#review-input").val(
                                             data.database_data.review
@@ -121,6 +186,15 @@ function App() {
                                     } else {
                                         $("#review-input").val("");
                                     }
+
+                                    if (data.database_data.notes) {
+                                        setNotes(data.database_data.notes);
+                                    }
+
+                                    setRecentData(data.recent_notes);
+
+                                    // If we're on the first disc, use the track number directly
+                                    // In any other case, we have to get the track number ourselves
                                     if (
                                         data.spotify_player_data.item
                                             .disc_number === 1
@@ -149,16 +223,15 @@ function App() {
                                         }
                                     }
                                 }
-                                if (
-                                    notes.length === 0 &&
-                                    data.database_data.notes.length !== 0 &&
-                                    !notesUpdated
-                                ) {
-                                    setNotes(data.database_data.notes);
-                                    setNotesUpdated(true);
-                                }
+
+                                // If this isn't a new song, the only things that can change are:
+                                // - Paused status
+                                // - Scrubbing status
+                                // - Playback progress
                                 setPaused(!data.spotify_player_data.is_playing);
-                                setRecentData(data.recent_notes);
+
+                                // The user isn't scrubbing if within 2 seconds of the actual time
+                                // (TODO: Gotta be a better way to do this)
                                 if (
                                     Math.abs(
                                         data.spotify_player_data.progress_ms -
@@ -167,14 +240,14 @@ function App() {
                                 ) {
                                     setScrubbing(false);
                                 }
-                                if (
-                                    !scrubbing &&
-                                    data.spotify_player_data.progress_ms
-                                ) {
+
+                                if (!scrubbing) {
                                     setPlaybackProgress(
                                         data.spotify_player_data.progress_ms
                                     );
                                 }
+
+                                // We need to turn playback progress into a string
                                 setPlaybackProgressString(
                                     Math.floor(
                                         (scrubbing
@@ -204,63 +277,12 @@ function App() {
                                         60
                                     )
                                 );
-                                setTrackLength(
-                                    data.spotify_player_data.item.duration_ms
-                                );
-                                setAlbumCoverURL(
-                                    data.spotify_player_data.item.album
-                                        .images[0].url
-                                );
-                                if (data.song_lyrics_html) {
-                                    setLyricHTML(
-                                        data.song_lyrics_html.fullLyricHTML
-                                    );
-                                } else {
-                                    setLyricHTML("No lyrics found.");
-                                }
-                                setTotalTracks(
-                                    data.spotify_player_data.item.album
-                                        .total_tracks
-                                );
-                                setSongTitle(
-                                    data.spotify_player_data.item.name
-                                );
-                                setAlbumTitle(
-                                    data.spotify_player_data.item.album.name
-                                );
-
-                                if (artists.length === 0) {
-                                    let tempArtists = [];
-                                    data.spotify_player_data.item.artists.map(
-                                        (artist) => {
-                                            tempArtists.push(artist.name);
-                                        }
-                                    );
-                                    setArtists(tempArtists);
-                                }
-
-                                if (albumArtists.length === 0) {
-                                    let tempAlbumArtists = [];
-                                    data.spotify_album_data.artists.map(
-                                        (artist) => {
-                                            tempAlbumArtists.push(artist.name);
-                                        }
-                                    );
-                                    setAlbumArtists(tempAlbumArtists);
-                                }
-
-                                setReleaseDate(
-                                    data.spotify_player_data.item.album
-                                        .release_date
-                                );
-                                setTracklist(
-                                    data.spotify_album_data.tracks.items
-                                );
-                                setAlbumReviews(data.album_reviews);
-                                setSongsWithData(data.songs_with_data);
                             }
                         } catch (e) {
                             console.log(e);
+                        } finally {
+                            console.log("finally")
+                            setProcessingPlayback(false);
                         }
                     }
                 });
@@ -268,13 +290,16 @@ function App() {
 
         const interval = setInterval(() => getPlaybackState(), 1000);
 
+        // Set up actual page events
         $(document).ready(function () {
+            // Set size flags when resizing
             const handleResize = () => {
                 setIsMobile(window.innerWidth < 768);
                 setIsLessThanXL(window.innerWidth < 1200);
             };
             window.addEventListener("resize", handleResize);
 
+            // Show error screen if no song has played yet
             if (songID === "") {
                 let errorModalTriggerButton = $("#errorModalTriggerButton");
                 errorModalTriggerButton.click();
@@ -282,6 +307,8 @@ function App() {
                 let errorModalDismissButton = $("#errorModalCloseButton");
                 errorModalDismissButton.click();
             }
+
+            // Handle draggable playback bar
             $(".form-range")
                 .off("change")
                 .on("change", async function (event) {
@@ -303,6 +330,8 @@ function App() {
                     setPlaybackProgress(event.currentTarget.value);
                     setSliderProgress(event.currentTarget.value);
                 });
+
+            // Simple hover/focus triggers
             $('[data-bs-toggle="tooltip"]').tooltip({
                 trigger: "hover",
             });
@@ -314,6 +343,8 @@ function App() {
                     );
                     $("#noteInput").focus();
                 });
+
+            // Handle saving notes
             $(".save-note")
                 .off("click")
                 .click(async function () {
@@ -330,6 +361,9 @@ function App() {
                     ]);
                     $("#noteInput").val("");
                 });
+
+            // Allows users to save markdown-based text version of their review
+            // Supports both individual songs and full albums
             $("#song-copy-to-clipboard")
                 .off("click")
                 .click(async function () {
@@ -479,6 +513,8 @@ function App() {
                     });
                     navigator.clipboard.writeText(copyText);
                 });
+
+            // Submit note
             $("#save-song-data")
                 .off("click")
                 .click(
@@ -486,6 +522,8 @@ function App() {
                         await submitNote();
                     }, 1000)
                 );
+
+            // Save note
             $("#noteInput")
                 .off("keydown")
                 .on("keydown", function (event) {
@@ -494,10 +532,14 @@ function App() {
                         $(".save-note").click();
                     }
                 });
+
+            // Lyric show toggle
             $("#showLyrics").change(function () {
                 var isChecked = $(this).prop("checked");
                 setShowLyrics(isChecked);
             });
+
+            // Allow for editing of notes
             notes.map((note, i) => {
                 let buttonID = "#edit-note" + i;
                 let formID = "#note-form" + i;
@@ -533,47 +575,40 @@ function App() {
             });
         });
 
-        async function submitNote() {
-            console.log("In submitNote. shouldSubmit is " + shouldSubmit);
-            if (!uploadingNote) {
-                if (shouldSubmit === true) {
-                    setUploadingNote(true);
-                    setShouldSubmit(false);
-                    handleShouldSubmit(songID);
-                    const requestOptions = {
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({
-                            id: songID,
-                            quickSummary: $("#quick-summary-input").val(),
-                            review: $("#review-input").val(),
-                            notes: notes,
-                        }),
-                    };
-                    let noteEmpty =
-                        (!$("#quick-summary-input").val() &&
-                            !$("#review-input").val() &&
-                            notes.length === 0) ||
-                        !songID;
-                    if (!noteEmpty) {
-                        await fetch(apiUrl + "/api", requestOptions)
-                            .then((response) => {
-                                setUploadingNote(false);
-                                return response.json();
-                            })
-                            .then((data) => console.log(data));
-                    } else {
-                        setUploadingNote(false);
-                        console.log("Empty note, rejected");
-
+        // Handle note submission
+        function submitNote() {
+            return new Promise(async (resolve, reject) => {
+                const requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: songID,
+                        quickSummary: $("#quick-summary-input").val(),
+                        review: $("#review-input").val(),
+                        notes: notes,
+                    }),
+                };
+                let noteEmpty =
+                    (!$("#quick-summary-input").val() &&
+                        !$("#review-input").val() &&
+                        notes.length === 0) ||
+                    !songID;
+                if (!noteEmpty) {
+                    try {
+                        const response = await fetch(apiUrl + "/api", requestOptions);
+                        const data = await response.json();
+                        console.log(data);
+                        resolve(data);
+                    } catch (error) {
+                        console.error("Error submitting note:", error);
+                        reject(error);
                     }
                 } else {
-                    console.log("Submit sent too soon. Did not submit.");
+                    resolve("Empty note");
                 }
-            } else {
-                console.log("Note currently being uploaded, rejected");
-            }
+            });
         }
+
 
         return () => {
             clearInterval(interval);
@@ -583,10 +618,8 @@ function App() {
         scrubbing,
         artists,
         albumArtists,
-        shouldSubmit,
         notes,
         sliderProgress,
-        notesUpdated,
     ]);
 
     class Note {
@@ -596,18 +629,6 @@ function App() {
             this.note = note;
         }
     }
-
-    async function handleShouldSubmit(tempID) {
-        setTimeout(() => {
-            if (tempID === songIDRef.current) {
-                setShouldSubmit(true);
-            }
-        }, 10000);
-    }
-
-    useEffect(() => {
-        songIDRef.current = songID;
-    }, [songID]);
 
     const debounce = (func, wait) => {
         let timeout;
@@ -623,33 +644,45 @@ function App() {
         };
     };
 
-    async function setUserPlaybackProgress(timestamp) {
-        const requestOptions = {
-            method: "PUT",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({timeInMS: timestamp}),
-        };
-        console.log("Making request for " + timestamp);
-        await fetch(apiUrl + "/api", requestOptions)
-            .then((response) => {
+    // Handle playback progress mutation
+    function setUserPlaybackProgress(timestamp) {
+        return new Promise(async (resolve, reject) => {
+            const requestOptions = {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ timeInMS: timestamp }),
+            };
+            console.log("Making request for " + timestamp);
+            try {
+                const response = await fetch(apiUrl + "/api", requestOptions);
                 console.log("Got request for " + timestamp);
                 setScrubbing(false);
-                return response.json();
-            })
-            .then((data) => data);
+                const data = await response.json();
+                resolve(data);
+            } catch (error) {
+                console.error("Error setting user playback progress:", error);
+                reject(error);
+            }
+        });
     }
 
-    async function controlPlayback() {
-        const requestOptions = {
-            method: "PUT",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({paused: paused}),
-        };
-        await fetch(apiUrl + "/playback-control", requestOptions)
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => data);
+    // Handle playback control mutation (playing/pausing)
+    function controlPlayback() {
+        return new Promise(async (resolve, reject) => {
+            const requestOptions = {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paused: paused }),
+            };
+            try {
+                const response = await fetch(apiUrl + "/playback-control", requestOptions);
+                const data = await response.json();
+                resolve(data);
+            } catch (error) {
+                console.error("Error controlling playback:", error);
+                reject(error);
+            }
+        });
     }
 
     function sendLogoutRequest() {
@@ -927,9 +960,6 @@ function App() {
             <LoggedOutModal/>
         </>
     );
-}
-
-function initComponents() {
 }
 
 export default App;
