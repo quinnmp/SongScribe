@@ -6,7 +6,7 @@ const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 require("dotenv").config();
 
 const corsUrl =
@@ -17,7 +17,7 @@ const mainUrl =
     process.env.NODE_ENV !== "production"
         ? "http://localhost:5000"
         : "https://songscribe-api.onrender.com";
-app.use(cors({ origin: corsUrl }));
+app.use(cors({origin: corsUrl}));
 
 mongoose.connect(
     `mongodb+srv://miles:${process.env.DB_PASSWORD}@userscribes.rzgicer.mongodb.net/`
@@ -44,6 +44,7 @@ const userScribesSchema = new mongoose.Schema({
 const UserScribe = mongoose.model("UserScribe", userScribesSchema);
 
 let userScribeArray = "";
+
 async function retrieveUserScribes() {
     try {
         userScribeArray = await UserScribe.find({}).exec();
@@ -331,7 +332,7 @@ async function getSongLyrics(queue) {
             });
             fullLyrics = await fullLyrics.replace('"', '\\"');
             fullLyrics = await fullLyrics.replace("\\", "\\\\");
-            return { fullLyricHTML: fullLyrics };
+            return {fullLyricHTML: fullLyrics};
         } catch (e) {
             console.log("Song lyrics not found");
         }
@@ -465,14 +466,14 @@ app.get("/api", async (req, res) => {
         if (accessToken === "") {
             console.log("No token, retrieving");
             let spotify_auth_uri = handleAuthURI();
-            res.send(JSON.stringify({ uri: spotify_auth_uri }));
-            return;
+            res.send(JSON.stringify({uri: spotify_auth_uri}));
+
         } else if (geniusAccessToken === "") {
             if (!geniusAuthAttempted) {
                 console.log("No Genius token, retrieving");
                 let genius_auth_uri = handleGeniusAuthURI();
-                res.send(JSON.stringify({ uri: genius_auth_uri }));
-                return;
+                res.send(JSON.stringify({uri: genius_auth_uri}));
+
             } else {
                 axios.get(mainUrl + "/genius_callback");
             }
@@ -566,7 +567,7 @@ app.get("/api", async (req, res) => {
                     );
                 } else {
                     res.send(
-                        JSON.stringify({ status: "failure, no active device" })
+                        JSON.stringify({status: "failure, no active device"})
                     );
                 }
             } catch (e) {
@@ -576,7 +577,7 @@ app.get("/api", async (req, res) => {
                     );
                     console.log(e);
                     accessToken = await getRefreshedToken(refreshToken);
-                    res.send(JSON.stringify({ status: "failure" }));
+                    res.send(JSON.stringify({status: "failure"}));
                 } else {
                     console.log("User logged out.");
                 }
@@ -587,10 +588,10 @@ app.get("/api", async (req, res) => {
 
 app.put("/api", async (req, res) => {
     if (accessToken === "") {
-        res.send(JSON.stringify({ status: "failure, no accessToken" }));
+        res.send(JSON.stringify({status: "failure, no accessToken"}));
     } else {
         await seekToPosition(req.body.timeInMS);
-        res.send(JSON.stringify({ status: "success" }));
+        res.send(JSON.stringify({status: "success"}));
     }
 });
 
@@ -613,10 +614,10 @@ app.put("/playback-control", async (req, res) => {
                 "Content-Type": "application/json",
             },
         });
-        res.send(JSON.stringify({ status: "success" }));
+        res.send(JSON.stringify({status: "success"}));
     } catch (e) {
         console.log(e.response);
-        res.send(JSON.stringify({ status: "failure" }));
+        res.send(JSON.stringify({status: "failure"}));
     }
 });
 
@@ -673,7 +674,7 @@ app.post("/api", async (req, res) => {
                                 song.quickSummary === req.body.quickSummary &&
                                 song.review === req.body.review &&
                                 JSON.stringify(song.notes) ===
-                                    JSON.stringify(req.body.notes)
+                                JSON.stringify(req.body.notes)
                             ) {
                                 console.log("No new data, POST rejected");
                                 setTimeout(
@@ -681,8 +682,8 @@ app.post("/api", async (req, res) => {
                                     10000
                                 );
                                 currentlyProcessingNoteFlag = false;
-                                res.send(JSON.stringify({ status: "failure" }));
-                                return;
+                                res.send(JSON.stringify({status: "failure"}));
+
                             } else {
                                 console.log(
                                     "Song exists already, updating info"
@@ -703,7 +704,7 @@ app.post("/api", async (req, res) => {
                             10000
                         );
                         currentlyProcessingNoteFlag = false;
-                        res.send(JSON.stringify({ status: "failure" }));
+                        res.send(JSON.stringify({status: "failure"}));
                         return;
                     }
                     scribe.songs.push({
@@ -720,13 +721,13 @@ app.post("/api", async (req, res) => {
                     setTimeout(() => (currentlyProcessingNote = false), 10000);
                     currentlyProcessingNoteFlag = false;
                     console.log("Sending success");
-                    res.send(JSON.stringify({ status: "success" }));
+                    res.send(JSON.stringify({status: "success"}));
                 }
             }
         });
     } else {
         console.log("Currently processing note");
-        res.send(JSON.stringify({ status: "failure" }));
+        res.send(JSON.stringify({status: "failure"}));
     }
 });
 

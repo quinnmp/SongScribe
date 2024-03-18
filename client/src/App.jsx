@@ -1,4 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import {useEffect, useState, useRef} from "react";
+
+// Components
 import AlbumSidebar from "./components/AlbumSidebar.jsx";
 import NoteModal from "./components/NoteModal.jsx";
 import EditNoteModal from "./components/EditNoteModal.jsx";
@@ -16,7 +18,10 @@ import Footer from "./components/Footer.jsx";
 import DisconnectTab from "./components/DisconnectTab.jsx";
 import LoggedOutModal from "./components/LoggedOutModal.jsx";
 
+// Utils
+
 function App() {
+    // Initialize Components
     const [songID, setSongID] = useState("");
     const [playbackProgress, setPlaybackProgress] = useState(-1);
     const [playbackProgressString, setPlaybackProgressString] = useState("");
@@ -59,21 +64,22 @@ function App() {
         let urlCode = window.location.href.split("?code=");
         if (urlCode.length > 1) {
             urlCode[1] = urlCode[1].slice(0, 64);
-            const queryParams = new URLSearchParams({ code: urlCode[1] });
+            const queryParams = new URLSearchParams({code: urlCode[1]});
             const requestOptions = {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
             };
             fetch(
                 apiUrl + "/genius_callback?" + queryParams,
                 requestOptions
             ).then((window.location = mainUrl));
         }
+
         function getPlaybackState() {
             console.log("Get playback state");
             const requestOptions = {
                 method: "GET",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
             };
             const apiUrlMain = apiUrl + "/api";
             fetch(apiUrlMain, requestOptions)
@@ -87,7 +93,7 @@ function App() {
                         try {
                             if (data.spotify_player_data.progress_ms) {
                                 if (
-                                    data.spotify_player_data.item.id !=
+                                    data.spotify_player_data.item.id !==
                                     songIDRef.current
                                 ) {
                                     setSongID(data.spotify_player_data.item.id);
@@ -148,7 +154,7 @@ function App() {
                                     data.database_data.notes.length !== 0 &&
                                     !notesUpdated
                                 ) {
-                                    await setNotes(data.database_data.notes);
+                                    setNotes(data.database_data.notes);
                                     setNotesUpdated(true);
                                 }
                                 setPaused(!data.spotify_player_data.is_playing);
@@ -156,7 +162,7 @@ function App() {
                                 if (
                                     Math.abs(
                                         data.spotify_player_data.progress_ms -
-                                            sliderProgress
+                                        sliderProgress
                                     ) < 2000
                                 ) {
                                     setScrubbing(false);
@@ -174,29 +180,29 @@ function App() {
                                         (scrubbing
                                             ? sliderProgress
                                             : data.spotify_player_data
-                                                  .progress_ms) /
-                                            1000 /
-                                            60
+                                                .progress_ms) /
+                                        1000 /
+                                        60
                                     ) +
-                                        ":" +
-                                        (Math.floor(
-                                            ((scrubbing
+                                    ":" +
+                                    (Math.floor(
+                                        ((scrubbing
                                                 ? sliderProgress
                                                 : data.spotify_player_data
-                                                      .progress_ms) /
-                                                1000) %
-                                                60
-                                        ) < 10
-                                            ? "0"
-                                            : "") +
-                                        Math.floor(
-                                            ((scrubbing
+                                                    .progress_ms) /
+                                            1000) %
+                                        60
+                                    ) < 10
+                                        ? "0"
+                                        : "") +
+                                    Math.floor(
+                                        ((scrubbing
                                                 ? sliderProgress
                                                 : data.spotify_player_data
-                                                      .progress_ms) /
-                                                1000) %
-                                                60
-                                        )
+                                                    .progress_ms) /
+                                            1000) %
+                                        60
+                                    )
                                 );
                                 setTrackLength(
                                     data.spotify_player_data.item.duration_ms
@@ -259,6 +265,7 @@ function App() {
                     }
                 });
         }
+
         const interval = setInterval(() => getPlaybackState(), 1000);
 
         $(document).ready(function () {
@@ -286,11 +293,11 @@ function App() {
                 .on("input", async function (event) {
                     setPlaybackProgressString(
                         Math.floor(sliderProgress / 1000 / 60) +
-                            ":" +
-                            (Math.floor((sliderProgress / 1000) % 60) < 10
-                                ? "0"
-                                : "") +
-                            Math.floor((sliderProgress / 1000) % 60)
+                        ":" +
+                        (Math.floor((sliderProgress / 1000) % 60) < 10
+                            ? "0"
+                            : "") +
+                        Math.floor((sliderProgress / 1000) % 60)
                     );
                     setScrubbing(true);
                     setPlaybackProgress(event.currentTarget.value);
@@ -357,12 +364,12 @@ function App() {
                     }
                     copyText = copyText.concat(
                         "## Quick Summary\n" +
-                            $("#quick-summary-input").val() +
-                            "\n\n" +
-                            "## Review\n" +
-                            $("#review-input").val() +
-                            "\n\n" +
-                            "## Notes\n"
+                        $("#quick-summary-input").val() +
+                        "\n\n" +
+                        "## Review\n" +
+                        $("#review-input").val() +
+                        "\n\n" +
+                        "## Notes\n"
                     );
                     if (notes.length > 0) {
                         notes.map((note) => {
@@ -400,7 +407,7 @@ function App() {
                                     albumReviews.findIndex(
                                         (obj) => obj.id === track.id
                                     )
-                                ];
+                                    ];
                             copyText = copyText.concat(
                                 "# " + track.name + "\n"
                             );
@@ -448,12 +455,12 @@ function App() {
                             }
                             copyText = copyText.concat(
                                 "## Quick Summary\n" +
-                                    trackData.quick_summary +
-                                    "\n\n" +
-                                    "## Review\n" +
-                                    trackData.review +
-                                    "\n\n" +
-                                    "## Notes\n"
+                                trackData.quick_summary +
+                                "\n\n" +
+                                "## Review\n" +
+                                trackData.review +
+                                "\n\n" +
+                                "## Notes\n"
                             );
                             if (trackData.notes.length > 0) {
                                 trackData.notes.map((note) => {
@@ -535,7 +542,7 @@ function App() {
                     handleShouldSubmit(songID);
                     const requestOptions = {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {"Content-Type": "application/json"},
                         body: JSON.stringify({
                             id: songID,
                             quickSummary: $("#quick-summary-input").val(),
@@ -558,7 +565,7 @@ function App() {
                     } else {
                         setUploadingNote(false);
                         console.log("Empty note, rejected");
-                        return;
+
                     }
                 } else {
                     console.log("Submit sent too soon. Did not submit.");
@@ -619,8 +626,8 @@ function App() {
     async function setUserPlaybackProgress(timestamp) {
         const requestOptions = {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ timeInMS: timestamp }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({timeInMS: timestamp}),
         };
         console.log("Making request for " + timestamp);
         await fetch(apiUrl + "/api", requestOptions)
@@ -635,8 +642,8 @@ function App() {
     async function controlPlayback() {
         const requestOptions = {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ paused: paused }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({paused: paused}),
         };
         await fetch(apiUrl + "/playback-control", requestOptions)
             .then((response) => {
@@ -648,7 +655,7 @@ function App() {
     function sendLogoutRequest() {
         const requestOptions = {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
         };
         const apiUrlLogout = apiUrl + "/logout";
         fetch(apiUrlLogout, requestOptions);
@@ -666,9 +673,9 @@ function App() {
 
     return (
         <>
-            <Header />
+            <Header/>
             <div className="container">
-                <NavBar />
+                <NavBar/>
                 <div className="tab-content" id="myTabContent">
                     <div
                         className="tab-pane fade show active"
@@ -799,26 +806,26 @@ function App() {
                                                     setPlaybackProgressString(
                                                         Math.floor(
                                                             newProgress /
-                                                                1000 /
-                                                                60
+                                                            1000 /
+                                                            60
                                                         ) +
-                                                            ":" +
-                                                            (Math.floor(
-                                                                (newProgress /
-                                                                    1000) %
-                                                                    60
-                                                            ) < 10
-                                                                ? "0"
-                                                                : "") +
-                                                            Math.floor(
-                                                                (newProgress /
-                                                                    1000) %
-                                                                    60
-                                                            )
+                                                        ":" +
+                                                        (Math.floor(
+                                                            (newProgress /
+                                                                1000) %
+                                                            60
+                                                        ) < 10
+                                                            ? "0"
+                                                            : "") +
+                                                        Math.floor(
+                                                            (newProgress /
+                                                                1000) %
+                                                            60
+                                                        )
                                                     );
                                                 }}
                                             />
-                                            <SongNoteArea />
+                                            <SongNoteArea/>
                                         </div>
                                     </div>
                                     {(isMobile || showLyrics) && (
@@ -901,8 +908,8 @@ function App() {
                 </div>
             </div>
             <div className="mt-5 mb-5"></div>
-            <Footer />
-            <NoteModal tempTimeStamp={tempTimeStamp} />
+            <Footer/>
+            <NoteModal tempTimeStamp={tempTimeStamp}/>
             {notes.map((note, i) => (
                 <EditNoteModal
                     key={i}
@@ -916,10 +923,13 @@ function App() {
                 paused={paused}
                 onClick={() => controlPlayback()}
             />
-            <ErrorModal />
-            <LoggedOutModal />
+            <ErrorModal/>
+            <LoggedOutModal/>
         </>
     );
+}
+
+function initComponents() {
 }
 
 export default App;
