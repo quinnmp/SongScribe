@@ -78,8 +78,9 @@ function App() {
             if (processingPlayback) {
                 console.log("Loop overrun")
                 return;
+            } else {
+                setProcessingPlayback(true);
             }
-            console.log("Get playback state");
 
             // Make the Spotify request
             const requestOptions = {
@@ -96,7 +97,6 @@ function App() {
                     if (data.uri) {
                         window.location.replace(data.uri);
                     } else {
-                        setProcessingPlayback(true);
                         try {
                             // If we got player progress, everything is connected
                             // and the user is listening to music.
@@ -178,7 +178,6 @@ function App() {
                                         $("#quick-summary-input").val("");
                                     }
 
-                                    console.log(data.database_data.review);
                                     if (data.database_data.review) {
                                         $("#review-input").val(
                                             data.database_data.review
@@ -281,14 +280,13 @@ function App() {
                         } catch (e) {
                             console.log(e);
                         } finally {
-                            console.log("finally")
                             setProcessingPlayback(false);
                         }
                     }
                 });
         }
 
-        const interval = setInterval(() => getPlaybackState(), 1000);
+        const interval = setInterval(() => getPlaybackState(), 200);
 
         // Set up actual page events
         $(document).ready(function () {
@@ -620,6 +618,7 @@ function App() {
         albumArtists,
         notes,
         sliderProgress,
+        processingPlayback
     ]);
 
     class Note {

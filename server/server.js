@@ -317,7 +317,7 @@ async function getSongLyrics(queue) {
                 "<div data-lyrics-container="
             );
             let fullLyrics = "";
-            await lyricDataArray.map((lyricSection, index) => {
+            lyricDataArray.map((lyricSection, index) => {
                 if (index !== 0) {
                     lyricSection = lyricSection.split(/>(.*)/s)[1];
                     lyricSection = lyricSection.split("</div>")[0];
@@ -377,8 +377,8 @@ function makeID(length) {
 }
 
 function handleAuthURI() {
-    var state = makeID(16);
-    var scope =
+    const state = makeID(16);
+    const scope =
         "user-read-playback-state user-modify-playback-state user-read-private user-read-email";
 
     return (
@@ -399,12 +399,12 @@ function handleAuthURI() {
 function handleGeniusAuthURI() {
     const apiURL = `https://api.genius.com/oauth/authorize`;
 
-    var state = makeID(16);
-    scope = "";
+    const state = makeID(16);
+    const scope = "";
 
     geniusAuthAttempted = true;
     return (
-        "https://api.genius.com/oauth/authorize?" +
+        apiURL + "?" +
         qs.stringify({
             response_type: "code",
             client_id: geniusClientID,
