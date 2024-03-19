@@ -138,8 +138,6 @@ function App() {
                                     setTracklist(
                                         data.spotify_album_data.tracks.items
                                     );
-                                    setAlbumReviews(data.album_reviews);
-                                    setSongsWithData(data.songs_with_data);
 
                                     if (data.song_lyrics_html) {
                                         setLyricHTML(
@@ -189,8 +187,6 @@ function App() {
                                     if (data.database_data.notes) {
                                         setNotes(data.database_data.notes);
                                     }
-
-                                    setRecentData(data.recent_notes);
 
                                     // If we're on the first disc, use the track number directly
                                     // In any other case, we have to get the track number ourselves
@@ -276,6 +272,11 @@ function App() {
                                         60
                                     )
                                 );
+
+                                // We always want to be updating these user datas
+                                setAlbumReviews(data.album_reviews);
+                                setSongsWithData(data.songs_with_data)
+                                setRecentData(data.recent_notes);
                             }
                         } catch (e) {
                             console.log(e);
