@@ -147,25 +147,21 @@ function App() {
                                         setLyricHTML("No lyrics found.");
                                     }
 
-                                    if (artists.length === 0) {
-                                        let tempArtists = [];
-                                        data.spotify_player_data.item.artists.map(
-                                            (artist) => {
-                                                tempArtists.push(artist.name);
-                                            }
-                                        );
-                                        setArtists(tempArtists);
-                                    }
+                                    let tempArtists = [];
+                                    data.spotify_player_data.item.artists.map(
+                                        (artist) => {
+                                            tempArtists.push(artist.name);
+                                        }
+                                    );
+                                    setArtists(tempArtists);
 
-                                    if (albumArtists.length === 0) {
-                                        let tempAlbumArtists = [];
-                                        data.spotify_album_data.artists.map(
-                                            (artist) => {
-                                                tempAlbumArtists.push(artist.name);
-                                            }
-                                        );
-                                        setAlbumArtists(tempAlbumArtists);
-                                    }
+                                    let tempAlbumArtists = [];
+                                    data.spotify_album_data.artists.map(
+                                        (artist) => {
+                                            tempAlbumArtists.push(artist.name);
+                                        }
+                                    );
+                                    setAlbumArtists(tempAlbumArtists);
 
                                     // Load user data for this song if it exists
                                     if (data.database_data.quickSummary) {

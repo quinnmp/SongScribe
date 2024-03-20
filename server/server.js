@@ -291,13 +291,38 @@ async function getUserData() {
     }
 }
 
+function cleanSongTitle(title) {
+    // Define a regular expression pattern to match "remastered" or "remaster" with optional year
+    const remasterPattern = /\(?\s*remaster(ed)?(\s*\d+)?\s*\)?/gi;
+
+    // Define a regular expression pattern to match "- [year]"
+    const yearPattern = /\s*-\s*\d+/g;
+
+    // Define a regular expression pattern to match featured artists
+    const featuredArtistPattern = /\s*\(?\s*(with|feat|ft\.?)\s*[\w\s\.-]+\)?/gi;
+
+    // Replace the matched "remastered" or "remaster" pattern with an empty string
+    let cleanedTitle = title.replace(remasterPattern, '');
+
+    // Replace the matched "- [year]" pattern with an empty string
+    cleanedTitle = cleanedTitle.replace(yearPattern, '');
+
+    // Replace the matched featured artist pattern with an empty string
+    cleanedTitle = cleanedTitle.replace(featuredArtistPattern, '');
+
+    // Remove any extra whitespace from the beginning and end of the cleaned title
+    return cleanedTitle.trim();
+}
+
 async function getSongLyrics(queue) {
     let searchTerm = "";
     if (queue) {
-        searchTerm = queueSongData.name + " " + queueSongData.artists[0].name;
+        let name = cleanSongTitle(queueSongData.name)
+        searchTerm = name + " " + queueSongData.artists[0].name;
     } else {
+        let name = cleanSongTitle(playerData.item.name)
         searchTerm =
-            playerData.item.name + " " + playerData.item.artists[0].name;
+            name + " " + playerData.item.artists[0].name;
     }
     const apiURL = `https://api.genius.com/search?q=` + searchTerm;
 
