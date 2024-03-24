@@ -6,7 +6,7 @@ const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 require("dotenv").config();
 
 const corsUrl =
@@ -17,7 +17,7 @@ const mainUrl =
     process.env.NODE_ENV !== "production"
         ? "http://localhost:5000"
         : "https://songscribe-api.onrender.com";
-app.use(cors({origin: corsUrl}));
+app.use(cors({ origin: corsUrl }));
 
 mongoose.connect(
     `mongodb+srv://miles:${process.env.DB_PASSWORD}@userscribes.rzgicer.mongodb.net/`
@@ -299,16 +299,17 @@ function cleanSongTitle(title) {
     const yearPattern = /\s*-\s*\d+/g;
 
     // Define a regular expression pattern to match featured artists
-    const featuredArtistPattern = /\s*\(?\s*(with|feat|ft\.?)\s*[\w\s\.-]+\)?/gi;
+    const featuredArtistPattern =
+        /\s*\(?\s*(with|feat|ft\.?)\s*[\w\s\.-]+\)?/gi;
 
     // Replace the matched "remastered" or "remaster" pattern with an empty string
-    let cleanedTitle = title.replace(remasterPattern, '');
+    let cleanedTitle = title.replace(remasterPattern, "");
 
     // Replace the matched "- [year]" pattern with an empty string
-    cleanedTitle = cleanedTitle.replace(yearPattern, '');
+    cleanedTitle = cleanedTitle.replace(yearPattern, "");
 
     // Replace the matched featured artist pattern with an empty string
-    cleanedTitle = cleanedTitle.replace(featuredArtistPattern, '');
+    cleanedTitle = cleanedTitle.replace(featuredArtistPattern, "");
 
     // Remove any extra whitespace from the beginning and end of the cleaned title
     return cleanedTitle.trim();
@@ -317,12 +318,11 @@ function cleanSongTitle(title) {
 async function getSongLyrics(queue) {
     let searchTerm = "";
     if (queue) {
-        let name = cleanSongTitle(queueSongData.name)
+        let name = cleanSongTitle(queueSongData.name);
         searchTerm = name + " " + queueSongData.artists[0].name;
     } else {
-        let name = cleanSongTitle(playerData.item.name)
-        searchTerm =
-            name + " " + playerData.item.artists[0].name;
+        let name = cleanSongTitle(playerData.item.name);
+        searchTerm = name + " " + playerData.item.artists[0].name;
     }
     const apiURL = `https://api.genius.com/search?q=` + searchTerm;
 
@@ -357,7 +357,7 @@ async function getSongLyrics(queue) {
             });
             fullLyrics = await fullLyrics.replace('"', '\\"');
             fullLyrics = await fullLyrics.replace("\\", "\\\\");
-            return {fullLyricHTML: fullLyrics};
+            return { fullLyricHTML: fullLyrics };
         } catch (e) {
             console.log("Song lyrics not found");
         }
@@ -429,7 +429,8 @@ function handleGeniusAuthURI() {
 
     geniusAuthAttempted = true;
     return (
-        apiURL + "?" +
+        apiURL +
+        "?" +
         qs.stringify({
             response_type: "code",
             client_id: geniusClientID,
@@ -491,14 +492,12 @@ app.get("/api", async (req, res) => {
         if (accessToken === "") {
             console.log("No token, retrieving");
             let spotify_auth_uri = handleAuthURI();
-            res.send(JSON.stringify({uri: spotify_auth_uri}));
-
+            res.send(JSON.stringify({ uri: spotify_auth_uri }));
         } else if (geniusAccessToken === "") {
             if (!geniusAuthAttempted) {
                 console.log("No Genius token, retrieving");
                 let genius_auth_uri = handleGeniusAuthURI();
-                res.send(JSON.stringify({uri: genius_auth_uri}));
-
+                res.send(JSON.stringify({ uri: genius_auth_uri }));
             } else {
                 axios.get(mainUrl + "/genius_callback");
             }
@@ -592,7 +591,7 @@ app.get("/api", async (req, res) => {
                     );
                 } else {
                     res.send(
-                        JSON.stringify({status: "failure, no active device"})
+                        JSON.stringify({ status: "failure, no active device" })
                     );
                 }
             } catch (e) {
@@ -602,7 +601,7 @@ app.get("/api", async (req, res) => {
                     );
                     console.log(e);
                     accessToken = await getRefreshedToken(refreshToken);
-                    res.send(JSON.stringify({status: "failure"}));
+                    res.send(JSON.stringify({ status: "failure" }));
                 } else {
                     console.log("User logged out.");
                 }
@@ -613,10 +612,10 @@ app.get("/api", async (req, res) => {
 
 app.put("/api", async (req, res) => {
     if (accessToken === "") {
-        res.send(JSON.stringify({status: "failure, no accessToken"}));
+        res.send(JSON.stringify({ status: "failure, no accessToken" }));
     } else {
         await seekToPosition(req.body.timeInMS);
-        res.send(JSON.stringify({status: "success"}));
+        res.send(JSON.stringify({ status: "success" }));
     }
 });
 
@@ -639,10 +638,10 @@ app.put("/playback-control", async (req, res) => {
                 "Content-Type": "application/json",
             },
         });
-        res.send(JSON.stringify({status: "success"}));
+        res.send(JSON.stringify({ status: "success" }));
     } catch (e) {
         console.log(e.response);
-        res.send(JSON.stringify({status: "failure"}));
+        res.send(JSON.stringify({ status: "failure" }));
     }
 });
 
@@ -699,7 +698,7 @@ app.post("/api", async (req, res) => {
                                 song.quickSummary === req.body.quickSummary &&
                                 song.review === req.body.review &&
                                 JSON.stringify(song.notes) ===
-                                JSON.stringify(req.body.notes)
+                                    JSON.stringify(req.body.notes)
                             ) {
                                 console.log("No new data, POST rejected");
                                 setTimeout(
@@ -707,8 +706,7 @@ app.post("/api", async (req, res) => {
                                     10000
                                 );
                                 currentlyProcessingNoteFlag = false;
-                                res.send(JSON.stringify({status: "failure"}));
-
+                                res.send(JSON.stringify({ status: "failure" }));
                             } else {
                                 console.log(
                                     "Song exists already, updating info"
@@ -729,7 +727,7 @@ app.post("/api", async (req, res) => {
                             10000
                         );
                         currentlyProcessingNoteFlag = false;
-                        res.send(JSON.stringify({status: "failure"}));
+                        res.send(JSON.stringify({ status: "failure" }));
                         return;
                     }
                     scribe.songs.push({
@@ -746,13 +744,13 @@ app.post("/api", async (req, res) => {
                     setTimeout(() => (currentlyProcessingNote = false), 10000);
                     currentlyProcessingNoteFlag = false;
                     console.log("Sending success");
-                    res.send(JSON.stringify({status: "success"}));
+                    res.send(JSON.stringify({ status: "success" }));
                 }
             }
         });
     } else {
         console.log("Currently processing note");
-        res.send(JSON.stringify({status: "failure"}));
+        res.send(JSON.stringify({ status: "failure" }));
     }
 });
 
