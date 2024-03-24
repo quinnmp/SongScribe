@@ -261,7 +261,7 @@ async function getRecentNoteData() {
     recentNoteData = [];
     for (const scribe of userScribeArray) {
         if (scribe.id === userData.id) {
-            for (let i = scribe.songs.length - 1; i > 0; i--) {
+            for (let i = scribe.songs.length - 1; i >= 0; i--) {
                 const songData = await getSongData(scribe.songs[i].id);
                 recentNoteData.push(songData);
                 if (recentNoteData.length >= 5) {
