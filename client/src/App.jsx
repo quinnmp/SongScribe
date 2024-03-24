@@ -779,25 +779,36 @@ function App() {
                                                 <h1 className="mt-5 mb-3 small-text">
                                                     Recently added tracks
                                                 </h1>
-                                                {recentData.length === 0 && (
+                                                {(!recentData ||
+                                                    recentData.length ===
+                                                        0) && (
                                                     <p>
                                                         No recent data. Happy
                                                         Scribing!
                                                     </p>
                                                 )}
-                                                {recentData.map((song, i) => (
-                                                    <RecentNote
-                                                        key={i}
-                                                        albumCoverURL={
-                                                            song.album.images[0]
-                                                                .url
-                                                        }
-                                                        songTitle={song.name}
-                                                        artist={
-                                                            song.artists[0].name
-                                                        }
-                                                    />
-                                                ))}
+                                                {recentData &&
+                                                    recentData.length > 0 &&
+                                                    recentData.map(
+                                                        (song, i) => (
+                                                            <RecentNote
+                                                                key={i}
+                                                                albumCoverURL={
+                                                                    song.album
+                                                                        .images[0]
+                                                                        .url
+                                                                }
+                                                                songTitle={
+                                                                    song.name
+                                                                }
+                                                                artist={
+                                                                    song
+                                                                        .artists[0]
+                                                                        .name
+                                                                }
+                                                            />
+                                                        )
+                                                    )}
                                             </>
                                         )}
                                     </div>
@@ -896,19 +907,36 @@ function App() {
                                                 <h1 className="mt-5 mb-3 small-text">
                                                     Recently added tracks
                                                 </h1>
-                                                {recentData.map((song, i) => (
-                                                    <RecentNote
-                                                        key={i}
-                                                        albumCoverURL={
-                                                            song.album.images[0]
-                                                                .url
-                                                        }
-                                                        songTitle={song.name}
-                                                        artist={
-                                                            song.artists[0].name
-                                                        }
-                                                    />
-                                                ))}
+                                                {(!recentData ||
+                                                    recentData.length ===
+                                                        0) && (
+                                                    <p>
+                                                        No recent data. Happy
+                                                        Scribing!
+                                                    </p>
+                                                )}
+                                                {recentData &&
+                                                    recentData.length >= 0 &&
+                                                    recentData.map(
+                                                        (song, i) => (
+                                                            <RecentNote
+                                                                key={i}
+                                                                albumCoverURL={
+                                                                    song.album
+                                                                        .images[0]
+                                                                        .url
+                                                                }
+                                                                songTitle={
+                                                                    song.name
+                                                                }
+                                                                artist={
+                                                                    song
+                                                                        .artists[0]
+                                                                        .name
+                                                                }
+                                                            />
+                                                        )
+                                                    )}
                                             </div>
                                         </div>
                                     )}
