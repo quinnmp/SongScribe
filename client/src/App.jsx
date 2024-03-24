@@ -44,7 +44,7 @@ function App() {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
     const [lyricHTML, setLyricHTML] = useState(``);
-    const [showLyrics, setShowLyrics] = useState(true);
+    const [showLyrics, setShowLyrics] = useState(false);
     const [processingPlayback, setProcessingPlayback] = useState(false);
 
     // Set up URLs
@@ -67,14 +67,14 @@ function App() {
                 headers: { "Content-Type": "application/json" },
             };
             if (urlCode.length > 64) {
-                fetch(apiUrl + "/callback?" + queryParams, requestOptions).then(
-                    (window.location = mainUrl)
-                );
+                window.location = mainUrl;
+                fetch(apiUrl + "/callback?" + queryParams, requestOptions);
             } else {
+                window.location = mainUrl + "?enable_lyrics";
                 fetch(
                     apiUrl + "/genius_callback?" + queryParams,
                     requestOptions
-                ).then((window.location = mainUrl));
+                );
             }
         }
 
@@ -83,21 +83,25 @@ function App() {
             if (processingPlayback) {
                 console.log("Loop overrun");
                 return;
+            } else {
+                setProcessingPlayback(true);
             }
 
             // Make the Spotify request
+            const queryParams = new URLSearchParams({ get_lyrics: showLyrics });
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
-            const apiUrlMain = apiUrl + "/api";
-            fetch(apiUrlMain, requestOptions)
+            const apiUrlMain = apiUrl + "/api?";
+            fetch(apiUrlMain + queryParams, requestOptions)
                 .then((response) => {
                     return response.json();
                 })
                 .then((data) => {
                     // If we received some URI in the response, we gotta go there
                     if (data.uri) {
+                        setProcessingPlayback(false);
                         window.location.replace(data.uri);
                     } else {
                         try {
@@ -105,7 +109,6 @@ function App() {
                             // and the user is listening to music.
                             // Update all data accordingly
                             if (data.spotify_player_data.progress_ms) {
-                                setProcessingPlayback(true);
                                 // If the response song ID is not our cached ID, we have a new song
                                 // Update song-specific data
                                 if (
@@ -143,14 +146,6 @@ function App() {
                                     setTracklist(
                                         data.spotify_album_data.tracks.items
                                     );
-
-                                    if (data.song_lyrics_html) {
-                                        setLyricHTML(
-                                            data.song_lyrics_html.fullLyricHTML
-                                        );
-                                    } else {
-                                        setLyricHTML("No lyrics found.");
-                                    }
 
                                     let tempArtists = [];
                                     data.spotify_player_data.item.artists.map(
@@ -278,6 +273,13 @@ function App() {
                                 setAlbumReviews(data.album_reviews);
                                 setSongsWithData(data.songs_with_data);
                                 setRecentData(data.recent_notes);
+                                if (data.song_lyrics_html) {
+                                    setLyricHTML(
+                                        data.song_lyrics_html.fullLyricHTML
+                                    );
+                                } else {
+                                    setLyricHTML("No lyrics found.");
+                                }
                             }
                         } catch (e) {
                             console.log(e);
@@ -288,7 +290,7 @@ function App() {
                 });
         }
 
-        const interval = setInterval(() => getPlaybackState(), 200);
+        const interval = setInterval(() => getPlaybackState(), 500);
 
         // Set up actual page events
         $(document).ready(function () {
@@ -577,7 +579,7 @@ function App() {
 
         // Handle note submission
         function submitNote() {
-            return new Promise(async (resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 const requestOptions = {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -595,11 +597,8 @@ function App() {
                     !songID;
                 if (!noteEmpty) {
                     try {
-                        const response = await fetch(
-                            apiUrl + "/api",
-                            requestOptions
-                        );
-                        const data = await response.json();
+                        const response = fetch(apiUrl + "/api", requestOptions);
+                        const data = response.json();
                         console.log(data);
                         resolve(data);
                     } catch (error) {
@@ -623,6 +622,7 @@ function App() {
         notes,
         sliderProgress,
         processingPlayback,
+        showLyrics,
     ]);
 
     class Note {
@@ -649,7 +649,7 @@ function App() {
 
     // Handle playback progress mutation
     function setUserPlaybackProgress(timestamp) {
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -657,10 +657,10 @@ function App() {
             };
             console.log("Making request for " + timestamp);
             try {
-                const response = await fetch(apiUrl + "/api", requestOptions);
+                const response = fetch(apiUrl + "/api", requestOptions);
                 console.log("Got request for " + timestamp);
                 setScrubbing(false);
-                const data = await response.json();
+                const data = response.json();
                 resolve(data);
             } catch (error) {
                 console.error("Error setting user playback progress:", error);
@@ -671,18 +671,18 @@ function App() {
 
     // Handle playback control mutation (playing/pausing)
     function controlPlayback() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ paused: paused }),
             };
             try {
-                const response = await fetch(
+                const response = fetch(
                     apiUrl + "/playback-control",
                     requestOptions
                 );
-                const data = await response.json();
+                const data = response.json();
                 resolve(data);
             } catch (error) {
                 console.error("Error controlling playback:", error);
@@ -728,7 +728,9 @@ function App() {
                                 className="form-check-input"
                                 type="checkbox"
                                 id="showLyrics"
-                                defaultChecked="true"
+                                defaultChecked={window.location.href.includes(
+                                    "enable_lyrics"
+                                )}
                             ></input>
                             <label
                                 className="form-check-label"
