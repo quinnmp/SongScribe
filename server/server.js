@@ -90,10 +90,7 @@ async function getAuth(code) {
         const data = qs.stringify({
             grant_type: "authorization_code",
             code: code,
-            redirect_uri:
-                process.env.NODE_ENV !== "production"
-                    ? "http://localhost:5000/callback"
-                    : "https://songscribe-api.onrender.com/callback",
+            redirect_uri: corsUrl,
         });
         const tokenURL = "https://accounts.spotify.com/api/token?" + data;
 
@@ -412,10 +409,7 @@ function handleAuthURI() {
             response_type: "code",
             client_id: clientID,
             scope: scope,
-            redirect_uri:
-                process.env.NODE_ENV !== "production"
-                    ? "http://localhost:5000/callback"
-                    : "https://songscribe-api.onrender.com/callback",
+            redirect_uri: corsUrl,
             state: state,
         })
     );

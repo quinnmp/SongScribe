@@ -58,19 +58,24 @@ function App() {
             : "https://songscribe.onrender.com";
 
     useEffect(() => {
-        // If we find ourselves on a page with a code param, we need to validate Genius
         if (window.location.href.includes("?code=")) {
             let urlCode = window.location.href.split("?code=");
-            urlCode = urlCode[1].slice(0, 64);
+            urlCode = urlCode[1].split("&state=")[0];
             const queryParams = new URLSearchParams({ code: urlCode });
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
-            fetch(
-                apiUrl + "/genius_callback?" + queryParams,
-                requestOptions
-            ).then((window.location = mainUrl));
+            if (urlCode.length > 64) {
+                fetch(apiUrl + "/callback?" + queryParams, requestOptions).then(
+                    (window.location = mainUrl)
+                );
+            } else {
+                fetch(
+                    apiUrl + "/genius_callback?" + queryParams,
+                    requestOptions
+                ).then((window.location = mainUrl));
+            }
         }
 
         // Main playback state handler, called every second

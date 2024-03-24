@@ -22,6 +22,11 @@ function ErrorModal() {
                                 on a track on Spotify and this page should
                                 update!
                             </h3>
+                            <br />
+                            <h3 className="fw-normal">
+                                If you are listening to something, make sure you
+                                are logged in to Spotify on this browser.
+                            </h3>
                         </div>
                         <div className="modal-footer">
                             <button
