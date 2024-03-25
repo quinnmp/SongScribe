@@ -31,7 +31,7 @@ function Footer() {
                             <p className="mt-5 mb-5 me-3">
                                 Quinn Pfeifer, 2023 | SongScribe
                             </p>
-                            <a href="https://github.com/QuinnP2910/SpotiScribe">
+                            <a href="https://github.com/quinnmp/SpotiScribe">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="48"
