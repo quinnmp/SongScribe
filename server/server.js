@@ -5,6 +5,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
+const User = require("./user.js");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 require("dotenv").config();
@@ -63,27 +64,11 @@ const authToken = Buffer.from(`${clientID}:${clientSecret}`, "utf-8").toString(
 let geniusClientID = process.env.GENIUS_API_ID;
 let geniusClientSecret = process.env.GENIUS_CLIENT_SECRET;
 
-let accessToken = "";
-let refreshToken = "";
+let userIDs = {};
+let userObjects = {};
 
-let geniusAuthAttempted = false;
-let geniusAccessToken = "";
-
-let albumData = "";
-let queueAlbumData = "";
-let queueSongData = "";
-let userData = "";
-let playerData = "";
-let lyricData = "";
-let queueLyricData = "";
-let playingSongID = "";
-let recentNoteData = [];
-let albumID = -1;
-
-let newSong = false;
-let loggedOut = false;
-
-let currentlyProcessingNote = false;
+let lastCodeReq = "";
+let lastGeniusCodeReq = "";
 
 async function getAuth(code) {
     try {
@@ -166,7 +151,7 @@ async function getRefreshedToken(refreshToken) {
     }
 }
 
-async function getPlayerState() {
+async function getPlayerState(accessToken) {
     const apiURL = `https://api.spotify.com/v1/me/player`;
 
     try {
@@ -182,11 +167,15 @@ async function getPlayerState() {
             return playerData;
         }
     } catch (e) {
-        console.log(e.response.data);
+        try {
+            console.log(e.response.data);
+        } catch (secondaryException) {
+            console.log(e);
+        }
     }
 }
 
-async function getAlbumData(id) {
+async function getAlbumData(id, accessToken) {
     const apiURL = `https://api.spotify.com/v1/albums/` + id;
 
     try {
@@ -240,7 +229,7 @@ async function getUnlimitedTracklist(id) {
     return items;
 }
 
-async function getSongData(id) {
+async function getSongData(id, accessToken) {
     const apiURL = `https://api.spotify.com/v1/tracks/` + id;
 
     try {
@@ -255,14 +244,17 @@ async function getSongData(id) {
     }
 }
 
-async function getRecentNoteData() {
+async function getRecentNoteData(userID, accessToken) {
     console.log("Getting recent note data");
 
-    recentNoteData = [];
+    let recentNoteData = [];
     for (const scribe of userScribeArray) {
-        if (scribe.id === userData.id) {
+        if (scribe.id === userID) {
             for (let i = scribe.songs.length - 1; i >= 0; i--) {
-                const songData = await getSongData(scribe.songs[i].id);
+                const songData = await getSongData(
+                    scribe.songs[i].id,
+                    accessToken
+                );
                 recentNoteData.push(songData);
                 if (recentNoteData.length >= 5) {
                     break;
@@ -273,7 +265,7 @@ async function getRecentNoteData() {
     }
 }
 
-async function getUserData() {
+async function getUserData(accessToken) {
     const apiURL = `https://api.spotify.com/v1/me`;
 
     try {
@@ -312,14 +304,16 @@ function cleanSongTitle(title) {
     return cleanedTitle.trim();
 }
 
-async function getSongLyrics(queue) {
+async function getSongLyrics(queue, userID) {
     let searchTerm = "";
     if (queue) {
-        let name = cleanSongTitle(queueSongData.name);
-        searchTerm = name + " " + queueSongData.artists[0].name;
+        let name = cleanSongTitle(userObjects[userID].queueSongData.name);
+        searchTerm =
+            name + " " + userObjects[userID].queueSongData.artists[0].name;
     } else {
-        let name = cleanSongTitle(playerData.item.name);
-        searchTerm = name + " " + playerData.item.artists[0].name;
+        let name = cleanSongTitle(userObjects[userID].playerData.item.name);
+        searchTerm =
+            name + " " + userObjects[userID].playerData.item.artists[0].name;
     }
     const apiURL = `https://api.genius.com/search?q=` + searchTerm;
 
@@ -363,7 +357,7 @@ async function getSongLyrics(queue) {
     }
 }
 
-async function seekToPosition(timeInMS) {
+async function seekToPosition(timeInMS, accessToken) {
     const apiURL = `https://api.spotify.com/v1/me/player/seek`;
 
     const data = {
@@ -399,6 +393,7 @@ function makeID(length) {
 }
 
 function handleAuthURI() {
+    console.log("Auth Spotify");
     const state = makeID(16);
     const scope =
         "user-read-playback-state user-modify-playback-state user-read-private user-read-email";
@@ -415,13 +410,12 @@ function handleAuthURI() {
     );
 }
 
-function handleGeniusAuthURI() {
+function handleGeniusAuthURI(userID) {
     const apiURL = `https://api.genius.com/oauth/authorize`;
 
     const state = makeID(16);
     const scope = "";
 
-    geniusAuthAttempted = true;
     return (
         apiURL +
         "?" +
@@ -435,7 +429,7 @@ function handleGeniusAuthURI() {
     );
 }
 
-async function handleQueue(withLyrics) {
+async function handleQueue(withLyrics, userID) {
     const apiURL = `https://api.spotify.com/v1/me/player/queue`;
 
     try {
@@ -449,12 +443,16 @@ async function handleQueue(withLyrics) {
             response.data.queue[0].album.id
         ) {
             console.log("Updating queue data");
-            queueAlbumData = await getAlbumData(
-                response.data.queue[0].album.id
+            userObjects[userID].queueAlbumData = await getAlbumData(
+                response.data.queue[0].album.id,
+                accessToken
             );
-            queueSongData = response.data.queue[0];
+            userObjects[userID].queueSongData = response.data.queue[0];
             if (withLyrics) {
-                queueLyricData = await getSongLyrics(true);
+                userObjects[userID].queueLyricData = await getSongLyrics(
+                    true,
+                    userID
+                );
             }
         }
         return response.data;
@@ -464,69 +462,105 @@ async function handleQueue(withLyrics) {
 }
 
 app.get("/callback", async function (req, res) {
+    // Prevent subsequent duplicate requests
+    if (lastCodeReq === req.query.code) {
+        return;
+    }
+    lastCodeReq = req.query.code;
     console.log("GET /callback");
     let authData = await getAuth(req.query.code, req.query.state);
     if (authData) {
-        accessToken = authData.access_token;
-        refreshToken = authData.refresh_token;
+        res.send(
+            JSON.stringify({
+                access_token: authData.access_token,
+                refresh_token: authData.refresh_token,
+            })
+        );
     }
 });
 
 app.get("/genius_callback", async function (req, res) {
+    // Prevent subsequent duplicate requests
+    if (lastGeniusCodeReq === req.query.code) {
+        return;
+    }
+    lastGeniusCodeReq = req.query.code;
     console.log("GET /genius_callback");
     let authData = await getGeniusAuth(req.query.code, req.query.state);
     if (authData) {
-        geniusAccessToken = authData.access_token;
-    } else {
-        geniusAuthAttempted = false;
+        res.send(
+            JSON.stringify({
+                access_token: authData.access_token,
+            })
+        );
     }
 });
 
 app.get("/api", async (req, res) => {
     console.log("GET /api");
-    if (!loggedOut) {
-        if (accessToken === "") {
+    accessToken = req.query.access_token;
+    geniusAccessToken = req.query.genius_access_token;
+    refreshToken = req.query.refresh_token;
+
+    let userID = userIDs[accessToken];
+
+    if (!userObjects[userID] || !userObjects[userID].newSong) {
+        if (accessToken === "null") {
             console.log("No token, retrieving");
             let spotify_auth_uri = handleAuthURI();
             res.send(JSON.stringify({ uri: spotify_auth_uri }));
-        } else if (req.query.get_lyrics == "true" && geniusAccessToken === "") {
-            if (!geniusAuthAttempted) {
-                console.log("No Genius token, retrieving");
-                let genius_auth_uri = handleGeniusAuthURI();
-                res.send(JSON.stringify({ uri: genius_auth_uri }));
-            } else {
-                axios.get(mainUrl + "/genius_callback");
-            }
+        } else if (
+            req.query.get_lyrics == "true" &&
+            geniusAccessToken === "null"
+        ) {
+            console.log("No Genius token, retrieving");
+            let genius_auth_uri = handleGeniusAuthURI(userID);
+            res.send(JSON.stringify({ uri: genius_auth_uri }));
         } else {
             try {
                 if (!userScribeArray) {
                     console.log("Retrieving database data");
                     await retrieveUserScribes();
                 }
-                if (userData === "") {
+                if (!userID) {
                     console.log("Getting user data");
-                    userData = await getUserData();
-                    recentNoteData = await getRecentNoteData();
+                    userData = await getUserData(accessToken);
+                    userIDs[accessToken] = userData.id;
+                    userID = userIDs[accessToken];
+                    if (!userObjects[userID]) {
+                        userObjects[userID] = new User();
+                    }
+                    userObjects[userID].recentNoteData =
+                        await getRecentNoteData(userID, accessToken);
                 }
                 console.log("Getting player data");
-                playerData = await getPlayerState();
-                if (playerData !== "") {
-                    if (playerData.item.album.id !== albumID) {
+                userObjects[userID].playerData = await getPlayerState(
+                    accessToken
+                );
+                if (userObjects[userID].playerData !== "") {
+                    if (
+                        userObjects[userID].playerData.item.album.id !==
+                        userObjects[userID].albumID
+                    ) {
                         if (
-                            queueAlbumData &&
-                            playerData.item.album.id === queueAlbumData.id
+                            userObjects[userID].queueAlbumData &&
+                            userObjects[userID].playerData.item.album.id ===
+                                userObjects[userID].queueAlbumData.id
                         ) {
-                            albumData = queueAlbumData;
+                            userObjects[userID].albumData =
+                                userObjects[userID].queueAlbumData;
                         } else {
                             console.log("Getting album data");
-                            albumData = await getAlbumData(
-                                playerData.item.album.id
+                            userObjects[userID].albumData = await getAlbumData(
+                                userObjects[userID].playerData.item.album.id,
+                                accessToken
                             );
                         }
-                        albumID = albumData.id;
+                        userObjects[userID].albumID =
+                            userObjects[userID].albumData.id;
                     }
                     let trackIDArray = [];
-                    albumData.tracks.items.map((track) => {
+                    userObjects[userID].albumData.tracks.items.map((track) => {
                         trackIDArray.push(track.id);
                     });
                     let databaseData = {
@@ -536,27 +570,38 @@ app.get("/api", async (req, res) => {
                     };
                     let albumReviews = [];
                     let songsWithData = [];
-                    if (playingSongID !== playerData.item.id) {
-                        newSong = true;
+                    if (
+                        userObjects[userID].playingSongID !==
+                        userObjects[userID].playerData.item.id
+                    ) {
+                        userObjects[userID].newSong = true;
                         if (req.query.get_lyrics == "true") {
                             if (
-                                queueLyricData &&
-                                queueSongData.id === playerData.item.id
+                                userObjects[userID].queueLyricData &&
+                                userObjects[userID].queueSongData.id ===
+                                    userObjects[userID].playerData.item.id
                             ) {
-                                lyricData = queueLyricData;
-                                playingSongID = queueSongData.id;
-                                queueLyricData = "";
+                                userObjects[userID].lyricData =
+                                    userObjects[userID].queueLyricData;
+                                userObjects[userID].playingSongID =
+                                    userObjects[userID].queueSongData.id;
+                                userObjects[userID].queueLyricData = "";
                             } else {
                                 console.log("New song, getting lyric data");
-                                lyricData = await getSongLyrics(false);
-                                playingSongID = playerData.item.id;
+                                userObjects[userID].lyricData =
+                                    await getSongLyrics(false, userID);
+                                userObjects[userID].playingSongID =
+                                    userObjects[userID].playerData.item.id;
                             }
                         }
                     }
                     await userScribeArray.forEach((scribe) => {
                         if (scribe.id === userData.id) {
                             scribe.songs.forEach((song) => {
-                                if (song.id === playingSongID) {
+                                if (
+                                    song.id ===
+                                    userObjects[userID].playingSongID
+                                ) {
                                     databaseData = song;
                                 }
                                 if (trackIDArray.includes(song.id)) {
@@ -572,19 +617,19 @@ app.get("/api", async (req, res) => {
                             });
                         }
                     });
-                    if (newSong) {
-                        newSong = false;
-                        handleQueue(req.query.get_lyrics == "true");
+                    if (userObjects[userID].newSong) {
+                        userObjects[userID].newSong = false;
+                        handleQueue(req.query.get_lyrics == "true", userID);
                     }
                     res.send(
                         JSON.stringify({
-                            spotify_player_data: playerData,
-                            spotify_album_data: albumData,
+                            spotify_player_data: userObjects[userID].playerData,
+                            spotify_album_data: userObjects[userID].albumData,
                             database_data: databaseData,
                             album_reviews: albumReviews,
                             songs_with_data: songsWithData,
-                            recent_notes: recentNoteData,
-                            song_lyrics_html: lyricData,
+                            recent_notes: userObjects[userID].recentNoteData,
+                            song_lyrics_html: userObjects[userID].lyricData,
                         })
                     );
                 } else {
@@ -593,15 +638,15 @@ app.get("/api", async (req, res) => {
                     );
                 }
             } catch (e) {
-                if (!loggedOut) {
+                if (!userObjects[userID] || !userObjects[userID].newSong) {
                     console.log(
                         "Token is expired or something else went wrong in the retrieval process"
                     );
                     console.log(e);
-                    accessToken = await getRefreshedToken(refreshToken);
-                    res.send(JSON.stringify({ status: "failure" }));
+                    let refreshTokenRes = await getRefreshedToken(refreshToken);
+                    res.send(JSON.stringify({ access_token: refreshTokenRes }));
                 } else {
-                    console.log("User logged out.");
+                    console.log(e);
                 }
             }
         }
@@ -609,16 +654,20 @@ app.get("/api", async (req, res) => {
 });
 
 app.put("/api", async (req, res) => {
-    if (accessToken === "") {
+    console.log("PUT /api");
+    accessToken = req.query.access_token;
+    if (accessToken === "null") {
         res.send(JSON.stringify({ status: "failure, no accessToken" }));
     } else {
-        await seekToPosition(req.body.timeInMS);
+        await seekToPosition(req.body.timeInMS, accessToken);
         res.send(JSON.stringify({ status: "success" }));
     }
 });
 
 app.put("/playback-control", async (req, res) => {
     console.log("PUT /playback-control");
+    accessToken = req.query.access_token;
+    let userID = userIDs[accessToken];
     const paused = req.body.paused;
     const apiURL = paused
         ? `https://api.spotify.com/v1/me/player/play`
@@ -626,7 +675,7 @@ app.put("/playback-control", async (req, res) => {
     let data = {};
     if (paused) {
         data = {
-            position_ms: playerData.progress_ms,
+            position_ms: userObjects[userID].playerData.progress_ms,
         };
     }
     try {
@@ -644,9 +693,10 @@ app.put("/playback-control", async (req, res) => {
 });
 
 app.post("/api", async (req, res) => {
-    if (!currentlyProcessingNote) {
-        currentlyProcessingNote = true;
-        console.log(req.body);
+    accessToken = req.body.access_token;
+    let userID = userIDs[accessToken];
+    if (!userObjects[userID].currentlyProcessingNote) {
+        userObjects[userID].currentlyProcessingNote = true;
         let reqData = await req.body;
         if (!reqData.quickSummary) {
             console.log("No summary");
@@ -658,7 +708,7 @@ app.post("/api", async (req, res) => {
             console.log("No notes");
         }
         await retrieveUserScribes();
-        const userData = await getUserData();
+        const userData = await getUserData(accessToken);
         let containsUser = false;
         let containsSong = false;
         userScribeArray.forEach((scribe) => {
@@ -699,10 +749,11 @@ app.post("/api", async (req, res) => {
                                     JSON.stringify(req.body.notes)
                             ) {
                                 console.log("No new data, POST rejected");
-                                setTimeout(
-                                    () => (currentlyProcessingNote = false),
-                                    10000
-                                );
+                                setTimeout(() => {
+                                    userObjects[
+                                        userID
+                                    ].currentlyProcessingNote = false;
+                                }, 10000);
                                 currentlyProcessingNoteFlag = false;
                                 res.send(JSON.stringify({ status: "failure" }));
                             } else {
@@ -721,7 +772,10 @@ app.post("/api", async (req, res) => {
                     if (noteEmpty) {
                         console.log("Empty note, POST rejected");
                         setTimeout(
-                            () => (currentlyProcessingNote = false),
+                            () =>
+                                (userObjects[
+                                    userID
+                                ].currentlyProcessingNote = false),
                             10000
                         );
                         currentlyProcessingNoteFlag = false;
@@ -738,8 +792,11 @@ app.post("/api", async (req, res) => {
                 if (currentlyProcessingNoteFlag) {
                     await scribe.save();
                     await retrieveUserScribes();
-                    await getRecentNoteData();
-                    setTimeout(() => (currentlyProcessingNote = false), 10000);
+                    userObjects[userID].recentNoteData =
+                        await getRecentNoteData(userID, accessToken);
+                    setTimeout(() => {
+                        userObjects[userID].currentlyProcessingNote = false;
+                    }, 10000);
                     currentlyProcessingNoteFlag = false;
                     console.log("Sending success");
                     res.send(JSON.stringify({ status: "success" }));
@@ -753,10 +810,11 @@ app.post("/api", async (req, res) => {
 });
 
 app.get("/logout", async (req, res) => {
+    accessToken = req.query.access_token;
+    let userID = userIDs[accessToken];
+
     console.log("GET /logout");
-    userData = "";
-    accessToken = "";
-    loggedOut = true;
+    delete userObjects[userID];
 });
 
 const PORT = process.env.PORT || 5000;

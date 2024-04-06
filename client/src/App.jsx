@@ -58,23 +58,59 @@ function App() {
             : "https://songscribe.onrender.com";
 
     useEffect(() => {
-        if (window.location.href.includes("?code=")) {
+        if (!processingPlayback && window.location.href.includes("?code=")) {
+            setProcessingPlayback(true);
             let urlCode = window.location.href.split("?code=");
+            let state = urlCode[1].split("&state=")[1];
             urlCode = urlCode[1].split("&state=")[0];
-            const queryParams = new URLSearchParams({ code: urlCode });
+            const queryParams = new URLSearchParams({
+                code: urlCode,
+                state: state,
+            });
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
             };
             if (urlCode.length > 64) {
-                window.location = mainUrl;
-                fetch(apiUrl + "/callback?" + queryParams, requestOptions);
+                fetch(apiUrl + "/callback?" + queryParams, requestOptions)
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        localStorage.setItem("access_token", data.access_token);
+                        localStorage.setItem(
+                            "refresh_token",
+                            data.refresh_token
+                        );
+                        setProcessingPlayback(false);
+                        window.history.pushState(
+                            { path: mainUrl },
+                            "",
+                            mainUrl
+                        );
+                    });
             } else {
-                window.location = mainUrl + "?enable_lyrics";
                 fetch(
                     apiUrl + "/genius_callback?" + queryParams,
                     requestOptions
-                );
+                )
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        console.log(data);
+                        console.log(data.access_token);
+                        localStorage.setItem(
+                            "genius_access_token",
+                            data.access_token
+                        );
+                        setProcessingPlayback(false);
+                        window.history.pushState(
+                            { path: mainUrl },
+                            "",
+                            mainUrl
+                        );
+                    });
             }
         }
 
@@ -88,7 +124,14 @@ function App() {
             }
 
             // Make the Spotify request
-            const queryParams = new URLSearchParams({ get_lyrics: showLyrics });
+            const queryParams = new URLSearchParams({
+                get_lyrics: showLyrics,
+                access_token: localStorage.getItem("access_token"),
+                refresh_token: localStorage.getItem("refresh_token"),
+                genius_access_token: localStorage.getItem(
+                    "genius_access_token"
+                ),
+            });
             const requestOptions = {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },
@@ -103,12 +146,23 @@ function App() {
                     if (data.uri) {
                         setProcessingPlayback(false);
                         window.location.replace(data.uri);
+                    } else if (data.access_token) {
+                        setProcessingPlayback(false);
+                        localStorage.setItem("access_token", data.access_token);
                     } else {
                         try {
                             // If we got player progress, everything is connected
                             // and the user is listening to music.
                             // Update all data accordingly
                             if (data.spotify_player_data.progress_ms) {
+                                if (window.location.href.includes("code")) {
+                                    if (showLyrics) {
+                                        window.location =
+                                            mainUrl + "?enable_lyrics";
+                                    } else {
+                                        window.location = mainUrl;
+                                    }
+                                }
                                 // If the response song ID is not our cached ID, we have a new song
                                 // Update song-specific data
                                 if (
@@ -588,6 +642,7 @@ function App() {
                         quickSummary: $("#quick-summary-input").val(),
                         review: $("#review-input").val(),
                         notes: notes,
+                        access_token: localStorage.getItem("access_token"),
                     }),
                 };
                 let noteEmpty =
@@ -598,9 +653,7 @@ function App() {
                 if (!noteEmpty) {
                     try {
                         const response = fetch(apiUrl + "/api", requestOptions);
-                        const data = response.json();
-                        console.log(data);
-                        resolve(data);
+                        resolve(response);
                     } catch (error) {
                         console.error("Error submitting note:", error);
                         reject(error);
@@ -650,6 +703,9 @@ function App() {
     // Handle playback progress mutation
     function setUserPlaybackProgress(timestamp) {
         return new Promise((resolve, reject) => {
+            const queryParams = new URLSearchParams({
+                access_token: localStorage.getItem("access_token"),
+            });
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -657,11 +713,13 @@ function App() {
             };
             console.log("Making request for " + timestamp);
             try {
-                const response = fetch(apiUrl + "/api", requestOptions);
+                const response = fetch(
+                    apiUrl + "/api?" + queryParams,
+                    requestOptions
+                );
                 console.log("Got request for " + timestamp);
                 setScrubbing(false);
-                const data = response.json();
-                resolve(data);
+                resolve(response);
             } catch (error) {
                 console.error("Error setting user playback progress:", error);
                 reject(error);
@@ -672,6 +730,9 @@ function App() {
     // Handle playback control mutation (playing/pausing)
     function controlPlayback() {
         return new Promise((resolve, reject) => {
+            const queryParams = new URLSearchParams({
+                access_token: localStorage.getItem("access_token"),
+            });
             const requestOptions = {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -679,11 +740,10 @@ function App() {
             };
             try {
                 const response = fetch(
-                    apiUrl + "/playback-control",
+                    apiUrl + "/playback-control?" + queryParams,
                     requestOptions
                 );
-                const data = response.json();
-                resolve(data);
+                resolve(response);
             } catch (error) {
                 console.error("Error controlling playback:", error);
                 reject(error);
@@ -692,11 +752,14 @@ function App() {
     }
 
     function sendLogoutRequest() {
+        const queryParams = new URLSearchParams({
+            access_token: localStorage.getItem("access_token"),
+        });
         const requestOptions = {
             method: "GET",
             headers: { "Content-Type": "application/json" },
         };
-        const apiUrlLogout = apiUrl + "/logout";
+        const apiUrlLogout = apiUrl + "/logout?" + queryParams;
         fetch(apiUrlLogout, requestOptions);
     }
 
