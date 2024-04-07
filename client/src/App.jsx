@@ -677,6 +677,7 @@ function App() {
         sliderProgress,
         processingPlayback,
         showLyrics,
+        loggedOut,
     ]);
 
     class Note {
