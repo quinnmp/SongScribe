@@ -45,7 +45,9 @@ function App() {
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
     const [lyricHTML, setLyricHTML] = useState(``);
     const [showLyrics, setShowLyrics] = useState(
-        localStorage.getItem("get_lyrics")
+        localStorage.getItem("get_lyrics") == "null"
+            ? false
+            : localStorage.getItem("get_lyrics")
     );
     const [processingPlayback, setProcessingPlayback] = useState(false);
     const [newClient, setNewClient] = useState(true);
@@ -1039,6 +1041,7 @@ function App() {
                             localStorage.setItem("access_token", "null");
                             localStorage.setItem("refresh_token", "null");
                             localStorage.setItem("genius_access_token", "null");
+                            localStorage.setItem("show_lyrics", "null");
                             setLoggedOut(true);
                             let loggedOutModalTriggerButton = $(
                                 "#loggedOutModalTriggerButton"
