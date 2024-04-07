@@ -44,7 +44,9 @@ function App() {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
     const [lyricHTML, setLyricHTML] = useState(``);
-    const [showLyrics, setShowLyrics] = useState(false);
+    const [showLyrics, setShowLyrics] = useState(
+        localStorage.getItem("get_lyrics")
+    );
     const [processingPlayback, setProcessingPlayback] = useState(false);
     const [newClient, setNewClient] = useState(true);
     const [loggedOut, setLoggedOut] = useState(false);
@@ -88,6 +90,7 @@ function App() {
                             data.refresh_token
                         );
                         setProcessingPlayback(false);
+                        localStorage.setItem("get_lyrics", true);
                         window.history.pushState(
                             { path: mainUrl },
                             "",
@@ -130,7 +133,7 @@ function App() {
 
             // Make the Spotify request
             const queryParams = new URLSearchParams({
-                get_lyrics: showLyrics,
+                get_lyrics: localStorage.getItem("get_lyrics"),
                 access_token: localStorage.getItem("access_token"),
                 refresh_token: localStorage.getItem("refresh_token"),
                 genius_access_token: localStorage.getItem(
@@ -593,6 +596,7 @@ function App() {
             // Lyric show toggle
             $("#showLyrics").change(function () {
                 var isChecked = $(this).prop("checked");
+                localStorage.setItem("get_lyrics", isChecked);
                 setShowLyrics(isChecked);
             });
 
@@ -793,7 +797,7 @@ function App() {
                                 className="form-check-input"
                                 type="checkbox"
                                 id="showLyrics"
-                                defaultChecked={false}
+                                defaultChecked={showLyrics}
                             ></input>
                             <label
                                 className="form-check-label"
