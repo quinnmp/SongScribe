@@ -92,7 +92,6 @@ function App() {
                             data.refresh_token
                         );
                         setProcessingPlayback(false);
-                        localStorage.setItem("get_lyrics", true);
                         window.history.pushState(
                             { path: mainUrl },
                             "",
@@ -115,6 +114,7 @@ function App() {
                             data.access_token
                         );
                         setProcessingPlayback(false);
+                        localStorage.setItem("get_lyrics", true);
                         window.history.pushState(
                             { path: mainUrl },
                             "",
