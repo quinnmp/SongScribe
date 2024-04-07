@@ -135,7 +135,10 @@ function App() {
 
             // Make the Spotify request
             const queryParams = new URLSearchParams({
-                get_lyrics: localStorage.getItem("get_lyrics"),
+                get_lyrics:
+                    localStorage.getItem("get_lyrics") == "null"
+                        ? false
+                        : localStorage.getItem("get_lyrics"),
                 access_token: localStorage.getItem("access_token"),
                 refresh_token: localStorage.getItem("refresh_token"),
                 genius_access_token: localStorage.getItem(
