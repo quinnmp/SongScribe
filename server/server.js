@@ -572,7 +572,8 @@ app.get("/api", async (req, res) => {
                     let songsWithData = [];
                     if (
                         userObjects[userID].playingSongID !==
-                        userObjects[userID].playerData.item.id
+                            userObjects[userID].playerData.item.id ||
+                        req.query.new_client
                     ) {
                         userObjects[userID].newSong = true;
                         if (req.query.get_lyrics == "true") {

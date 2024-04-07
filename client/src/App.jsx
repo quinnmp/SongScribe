@@ -46,6 +46,7 @@ function App() {
     const [lyricHTML, setLyricHTML] = useState(``);
     const [showLyrics, setShowLyrics] = useState(false);
     const [processingPlayback, setProcessingPlayback] = useState(false);
+    const [newClient, setNewClient] = useState(true);
 
     // Set up URLs
     const apiUrl =
@@ -131,6 +132,7 @@ function App() {
                 genius_access_token: localStorage.getItem(
                     "genius_access_token"
                 ),
+                new_client: newClient,
             });
             const requestOptions = {
                 method: "GET",
@@ -155,13 +157,8 @@ function App() {
                             // and the user is listening to music.
                             // Update all data accordingly
                             if (data.spotify_player_data.progress_ms) {
-                                if (window.location.href.includes("code")) {
-                                    if (showLyrics) {
-                                        window.location =
-                                            mainUrl + "?enable_lyrics";
-                                    } else {
-                                        window.location = mainUrl;
-                                    }
+                                if (newClient) {
+                                    setNewClient(false);
                                 }
                                 // If the response song ID is not our cached ID, we have a new song
                                 // Update song-specific data
@@ -344,7 +341,7 @@ function App() {
                 });
         }
 
-        const interval = setInterval(() => getPlaybackState(), 500);
+        const interval = setInterval(() => getPlaybackState(), 300);
 
         // Set up actual page events
         $(document).ready(function () {
@@ -791,9 +788,7 @@ function App() {
                                 className="form-check-input"
                                 type="checkbox"
                                 id="showLyrics"
-                                defaultChecked={window.location.href.includes(
-                                    "enable_lyrics"
-                                )}
+                                defaultChecked={false}
                             ></input>
                             <label
                                 className="form-check-label"
@@ -1031,6 +1026,10 @@ function App() {
                     <DisconnectTab
                         onClick={() => {
                             sendLogoutRequest();
+
+                            localStorage.setItem("access_token", null);
+                            localStorage.setItem("refresh_token", null);
+                            localStorage.setItem("genius_access_token", null);
                             let loggedOutModalTriggerButton = $(
                                 "#loggedOutModalTriggerButton"
                             );

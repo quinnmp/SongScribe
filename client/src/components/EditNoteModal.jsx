@@ -1,6 +1,5 @@
 function EditNoteModal(props) {
     let id = "editNoteInterface" + props.index;
-    let textareaID = "#noteInput" + props.index;
     function subtractFromTimestamp(timestamp) {
         let timestampArray = timestamp.split(":");
         if (timestampArray[1] == "00") {
