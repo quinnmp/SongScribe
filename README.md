@@ -6,10 +6,6 @@ A website that allows you to take notes on songs using the Spotify API.
 
 https://songscribe.onrender.com/
 
-# NOTE
-
-NOTE: This website is currently in "Development mode" and IS NOT AVAILABLE pending Spotify approving the app. If you want access, reach out to me with your full name and email attributed to your Spotify account.
-
 # Description:
 
 The basic idea of this application is to provide a way for Spotify users to make comments and notes on songs that they are listening to. While the song is playing, the website will populate with all the information about the song and a playback bar will appear with a plus button that allows users to make a note at that specific part of the song. They can also provide a quick summary and description of a song. They can view an overview of their notes on an album with the album tab.
