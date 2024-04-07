@@ -47,6 +47,7 @@ function App() {
     const [showLyrics, setShowLyrics] = useState(false);
     const [processingPlayback, setProcessingPlayback] = useState(false);
     const [newClient, setNewClient] = useState(true);
+    const [loggedOut, setLoggedOut] = useState(false);
 
     // Set up URLs
     const apiUrl =
@@ -59,6 +60,9 @@ function App() {
             : "https://songscribe.onrender.com";
 
     useEffect(() => {
+        if (loggedOut) {
+            return;
+        }
         if (!processingPlayback && window.location.href.includes("?code=")) {
             setProcessingPlayback(true);
             let urlCode = window.location.href.split("?code=");
@@ -341,7 +345,7 @@ function App() {
                 });
         }
 
-        const interval = setInterval(() => getPlaybackState(), 300);
+        const interval = setInterval(() => getPlaybackState(), 1000);
 
         // Set up actual page events
         $(document).ready(function () {
@@ -1027,9 +1031,10 @@ function App() {
                         onClick={() => {
                             sendLogoutRequest();
 
-                            localStorage.setItem("access_token", null);
-                            localStorage.setItem("refresh_token", null);
-                            localStorage.setItem("genius_access_token", null);
+                            localStorage.setItem("access_token", "null");
+                            localStorage.setItem("refresh_token", "null");
+                            localStorage.setItem("genius_access_token", "null");
+                            setLoggedOut(true);
                             let loggedOutModalTriggerButton = $(
                                 "#loggedOutModalTriggerButton"
                             );

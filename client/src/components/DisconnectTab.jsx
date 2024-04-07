@@ -10,7 +10,8 @@ function DisconnectTab(props) {
             >
                 <p className="mt-5">
                     This page allows you to log out and disconnect your Spotify
-                    account from SongScribe.
+                    account from SongScribe. Log back in simply by reloading the
+                    page or visiting it at any future time.
                 </p>
                 <button
                     className="btn btn-primary mx-auto"
