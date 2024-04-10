@@ -29,7 +29,7 @@ function Footer() {
                         </div>
                         <div className="col-6 d-flex justify-content-end pe-md-5 pe-0 pt-3">
                             <p className="mt-5 mb-5 me-3">
-                                Quinn Pfeifer, 2023 | SongScribe
+                                Quinn Pfeifer, 2024 | SongScribe
                             </p>
                             <a href="https://github.com/quinnmp/SongScribe">
                                 <svg
