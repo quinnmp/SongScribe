@@ -1,4 +1,4 @@
-function ErrorModal() {
+function ErrorModal(props) {
     return (
         <>
             <button
@@ -34,6 +34,7 @@ function ErrorModal() {
                                 className="btn close-btn mx-auto"
                                 id="errorModalCloseButton"
                                 data-bs-dismiss="modal"
+                                onClick={props.onClick}
                             >
                                 Close
                             </button>

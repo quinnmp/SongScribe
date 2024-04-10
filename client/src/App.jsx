@@ -52,6 +52,7 @@ function App() {
     const [processingPlayback, setProcessingPlayback] = useState(false);
     const [newClient, setNewClient] = useState(true);
     const [loggedOut, setLoggedOut] = useState(false);
+    const [errorDismissed, setErrorDismissed] = useState(false);
 
     // Set up URLs
     const apiUrl =
@@ -365,7 +366,7 @@ function App() {
             window.addEventListener("resize", handleResize);
 
             // Show error screen if no song has played yet
-            if (songID === "") {
+            if (songID === "" && !errorDismissed) {
                 let errorModalTriggerButton = $("#errorModalTriggerButton");
                 errorModalTriggerButton.click();
             } else {
@@ -687,6 +688,7 @@ function App() {
         processingPlayback,
         showLyrics,
         loggedOut,
+        errorDismissed,
     ]);
 
     class Note {
@@ -1070,7 +1072,7 @@ function App() {
                 paused={paused}
                 onClick={() => controlPlayback()}
             />
-            <ErrorModal />
+            <ErrorModal onClick={() => setErrorDismissed(true)} />
             <LoggedOutModal />
         </>
     );
