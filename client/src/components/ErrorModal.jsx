@@ -18,14 +18,11 @@ function ErrorModal(props) {
                         </div>
                         <div className="modal-body">
                             <h3 className="fw-normal">
-                                Looks like you're not listening to anything. Put
-                                on a track on Spotify and this page should
-                                update!
+                                We're getting everything set up for you. This could take up to a minute.
                             </h3>
                             <br />
                             <h3 className="fw-normal">
-                                If you are listening to something, make sure you
-                                are logged in to Spotify on this browser.
+                                While you wait, make sure you have a song playing on Spotify (or this message won't go away!) and you aren't signed into any other account on this browser (or we'll think that's you!) 
                             </h3>
                         </div>
                         <div className="modal-footer">
