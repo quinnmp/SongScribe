@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const xss = require("xss");
 const mongoose = require("mongoose");
 const User = require("./user.js");
 app.use(bodyParser.json());
@@ -788,10 +789,10 @@ app.post("/api", async (req, res) => {
                         return;
                     }
                     scribe.songs.push({
-                        id: req.body.id,
-                        quickSummary: req.body.quickSummary,
-                        review: req.body.review,
-                        notes: req.body.notes,
+                        id: xss(req.body.id),
+                        quickSummary: xss(req.body.quickSummary),
+                        review: xss(req.body.review),
+                        notes: xss(req.body.notes),
                     });
                 }
                 if (currentlyProcessingNoteFlag) {
