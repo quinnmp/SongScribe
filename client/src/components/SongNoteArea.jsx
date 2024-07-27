@@ -33,6 +33,10 @@ function SongNoteArea() {
                 >
                     Save
                 </button>
+                <p className="align-middle mt-1">
+                    (This note will also automatically save when the song
+                    switches!)
+                </p>
             </div>
         </>
     );
