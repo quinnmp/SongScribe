@@ -30,15 +30,30 @@ const userScribesSchema = new mongoose.Schema({
     songs: [
         {
             id: String,
-            quickSummary: String,
-            review: String,
-            notes: [
-                {
-                    timestamp: String,
-                    length: Number,
-                    note: String,
-                },
-            ],
+            quickSummary: {
+                type: String,
+                set: (v) => xss(v),
+            },
+            review: {
+                type: String,
+                set: (v) => xss(v),
+            },
+            notes: {
+                type: [
+                    {
+                        timestamp: {
+                            type: String,
+                            set: (v) => xss(v),
+                        },
+                        length: Number,
+                        note: {
+                            type: String,
+                            set: (v) => xss(v),
+                        },
+                    },
+                ],
+                default: [],
+            },
         },
     ],
 });
@@ -704,13 +719,27 @@ app.post("/api", async (req, res) => {
     if (!userObjects[userID].currentlyProcessingNote) {
         userObjects[userID].currentlyProcessingNote = true;
         let reqData = await req.body;
-        if (!reqData.quickSummary) {
+
+        const sanitizedData = {
+            id: xss(req.body.id),
+            quickSummary: xss(req.body.quickSummary),
+            review: xss(req.body.review),
+            notes: Array.isArray(req.body.notes)
+                ? req.body.notes.map((note) => ({
+                      timestamp: xss(note.timestamp || ""),
+                      length: note.length || 0,
+                      note: xss(note.note || ""),
+                  }))
+                : [],
+        };
+
+        if (!sanitizedData.quickSummary) {
             console.log("No summary");
         }
-        if (!reqData.review) {
+        if (!sanitizedData.review) {
             console.log("No review");
         }
-        if (reqData.notes.length === 0) {
+        if (sanitizedData.notes.length === 0) {
             console.log("No notes");
         }
         await retrieveUserScribes();
@@ -731,17 +760,17 @@ app.post("/api", async (req, res) => {
             await retrieveUserScribes();
         }
         let noteEmpty =
-            (!reqData.quickSummary &&
-                !reqData.review &&
-                reqData.notes.length === 0) ||
-            !reqData.id;
+            (!sanitizedData.quickSummary &&
+                !sanitizedData.review &&
+                sanitizedData.notes.length === 0) ||
+            !sanitizedData.id;
         let skipPush = false;
         let currentlyProcessingNoteFlag = true;
         userScribeArray.forEach(async (scribe) => {
             if (scribe.id === userData.id) {
                 console.log("Account found!");
                 scribe.songs.forEach(async (song, index) => {
-                    if (song.id === req.body.id) {
+                    if (song.id === sanitizedData.id) {
                         if (noteEmpty) {
                             console.log("Empty note, deleting song");
                             scribe.songs.splice(index, 1);
@@ -749,10 +778,11 @@ app.post("/api", async (req, res) => {
                         } else {
                             containsSong = true;
                             if (
-                                song.quickSummary === req.body.quickSummary &&
-                                song.review === req.body.review &&
+                                song.quickSummary ===
+                                    sanitizedData.quickSummary &&
+                                song.review === sanitizedData.review &&
                                 JSON.stringify(song.notes) ===
-                                    JSON.stringify(req.body.notes)
+                                    JSON.stringify(sanitizedData.notes)
                             ) {
                                 console.log("No new data, POST rejected");
                                 setTimeout(() => {
@@ -766,13 +796,14 @@ app.post("/api", async (req, res) => {
                                 console.log(
                                     "Song exists already, updating info"
                                 );
-                                song.quickSummary = req.body.quickSummary;
-                                song.review = req.body.review;
-                                song.notes = req.body.notes;
+                                song.quickSummary = sanitizedData.quickSummary;
+                                song.review = sanitizedData.review;
+                                song.notes = sanitizedData.notes;
                             }
                         }
                     }
                 });
+
                 if (!containsSong && !skipPush) {
                     console.log("Song does not exist, pushing new data");
                     if (noteEmpty) {
@@ -788,12 +819,7 @@ app.post("/api", async (req, res) => {
                         res.send(JSON.stringify({ status: "failure" }));
                         return;
                     }
-                    scribe.songs.push({
-                        id: xss(req.body.id),
-                        quickSummary: xss(req.body.quickSummary),
-                        review: xss(req.body.review),
-                        notes: xss(req.body.notes),
-                    });
+                    scribe.songs.push(sanitizedData);
                 }
                 if (currentlyProcessingNoteFlag) {
                     await scribe.save();
