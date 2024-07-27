@@ -56,6 +56,11 @@ a:hover {
     fill: #191a19;
 }
 
+.bi-paypal {
+    position: relative;
+    bottom: 10px;
+}
+
 /* Navigation Tabs */
 .nav-tabs {
     border-color: #163b1e;
