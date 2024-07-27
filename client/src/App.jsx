@@ -962,7 +962,7 @@ function App() {
                                             <SongNoteArea />
                                         </div>
                                     </div>
-                                    {(isMobile || showLyrics == "true") && (
+                                    {(isMobile || showLyrics) && (
                                         <div className="row">
                                             <div className="col-12 word-wrap">
                                                 {notes.map((note, i) => (
@@ -1026,7 +1026,7 @@ function App() {
                                     )}
                                 </div>
                             </div>
-                            {showLyrics == "true" && (
+                            {showLyrics && (
                                 <div className="col-6 mt-5">
                                     <div
                                         dangerouslySetInnerHTML={{
