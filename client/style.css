@@ -45,20 +45,10 @@ a:hover {
     text-decoration-color: #b0be89;
 }
 
-/* Spotify Link */
-.spotify-link,
-.bi-github {
-    position: relative;
-    top: 5px;
-}
-
-.bi-github:hover {
+.bi-github:hover,
+.bi-spotify:hover,
+.bi-paypal:hover {
     fill: #191a19;
-}
-
-.bi-paypal {
-    position: relative;
-    bottom: 10px;
 }
 
 /* Navigation Tabs */
@@ -225,10 +215,20 @@ a:hover {
     height: 50vh;
 }
 
+.footer-bold {
+    font-size: 24px;
+}
+
 /* Media Queries */
 @media (min-width: 576px) {
     .pause-button {
         width: 15%;
+    }
+}
+
+@media (max-width: 990px) {
+    footer .row > div {
+        justify-content: center !important;
     }
 }
 

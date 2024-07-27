@@ -1,7 +1,7 @@
 function SongNoteArea() {
     return (
         <>
-            <div className="py-5 px-md-5 px-sm-1">
+            <div className="pt-5 pb-1 px-md-5 px-sm-1">
                 <label
                     htmlFor="quick-summary-input"
                     className="form-label mt-md-3 mt-0"
