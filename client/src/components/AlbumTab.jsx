@@ -29,7 +29,7 @@ function AlbumTab(props) {
                     <div key={i}>
                         <hr className="mx-3" />
                         <div className="row">
-                            <div className="col-md-1 col-2">
+                            <div className="col-md-1 col-1 me-2">
                                 <h2 key={i}>{i + 1}.</h2>
                             </div>
                             <div className="vr"></div>
