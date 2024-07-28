@@ -45,10 +45,12 @@ function App() {
     const [isLessThanXL, setIsLessThanXL] = useState(window.innerWidth < 1200);
     const [lyricHTML, setLyricHTML] = useState(``);
     const [showLyrics, setShowLyrics] = useState(
-        localStorage.getItem("get_lyrics") == "null"
+        localStorage.getItem("get_lyrics") == "null" ||
+            localStorage.getItem("get_lyrics") == "false"
             ? false
-            : localStorage.getItem("get_lyrics")
+            : "true"
     );
+    console.log(Boolean(localStorage.getItem("get_lyrics")));
     const [processingPlayback, setProcessingPlayback] = useState(false);
     const [newClient, setNewClient] = useState(true);
     const [loggedOut, setLoggedOut] = useState(false);
@@ -600,8 +602,9 @@ function App() {
             // Lyric show toggle
             $("#showLyrics").change(function () {
                 var isChecked = $(this).prop("checked");
+                console.log(Boolean(isChecked));
                 localStorage.setItem("get_lyrics", isChecked);
-                setShowLyrics(isChecked);
+                setShowLyrics(Boolean(isChecked));
             });
 
             // Allow for editing of notes
@@ -802,7 +805,7 @@ function App() {
                                 className="form-check-input"
                                 type="checkbox"
                                 id="showLyrics"
-                                defaultChecked={showLyrics == "true"}
+                                defaultChecked={showLyrics}
                             ></input>
                             <label
                                 className="form-check-label"
@@ -812,14 +815,7 @@ function App() {
                             </label>
                         </div>
                         <div className="row">
-                            {/* I have no clue why I have to check for both the boolean and the string but it doesn't work otherwise */}
-                            <div
-                                className={
-                                    showLyrics == true || showLyrics == "true"
-                                        ? "col-6"
-                                        : "col-12"
-                                }
-                            >
+                            <div className={showLyrics ? "col-6" : "col-12"}>
                                 <div className="row">
                                     <div className="col-md-3 col-4 word-wrap">
                                         <AlbumSidebar
@@ -832,69 +828,66 @@ function App() {
                                             releaseDate={releaseDate}
                                         />
 
-                                        {!isMobile &&
-                                            !(showLyrics == "true") && (
-                                                <>
-                                                    {notes.map((note, i) => (
-                                                        <SidebarNote
-                                                            note={note}
-                                                            notes={notes}
-                                                            key={i}
-                                                            index={i}
-                                                            onClick={() =>
-                                                                setUserPlaybackProgress(
-                                                                    timestampToMilliseconds(
-                                                                        note.timestamp
-                                                                    )
+                                        {!isMobile && !showLyrics && (
+                                            <>
+                                                {notes.map((note, i) => (
+                                                    <SidebarNote
+                                                        note={note}
+                                                        notes={notes}
+                                                        key={i}
+                                                        index={i}
+                                                        onClick={() =>
+                                                            setUserPlaybackProgress(
+                                                                timestampToMilliseconds(
+                                                                    note.timestamp
                                                                 )
-                                                            }
-                                                        />
-                                                    ))}
-                                                    <div className="d-flex justify-content-center mt-3">
-                                                        <button
-                                                            className="btn btn-primary"
-                                                            id="song-copy-to-clipboard"
-                                                        >
-                                                            Save scribe to
-                                                            clipboard
-                                                        </button>
-                                                    </div>
-                                                    <h1 className="mt-5 mb-3 small-text">
-                                                        Recently added tracks
-                                                    </h1>
-                                                    {(!recentData ||
-                                                        recentData.length ===
-                                                            0) && (
-                                                        <p>
-                                                            No recent data.
-                                                            Happy Scribing!
-                                                        </p>
-                                                    )}
-                                                    {recentData &&
-                                                        recentData.length > 0 &&
-                                                        recentData.map(
-                                                            (song, i) => (
-                                                                <RecentNote
-                                                                    key={i}
-                                                                    albumCoverURL={
-                                                                        song
-                                                                            .album
-                                                                            .images[0]
-                                                                            .url
-                                                                    }
-                                                                    songTitle={
-                                                                        song.name
-                                                                    }
-                                                                    artist={
-                                                                        song
-                                                                            .artists[0]
-                                                                            .name
-                                                                    }
-                                                                />
                                                             )
-                                                        )}
-                                                </>
-                                            )}
+                                                        }
+                                                    />
+                                                ))}
+                                                <div className="d-flex justify-content-center mt-3">
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        id="song-copy-to-clipboard"
+                                                    >
+                                                        Save scribe to clipboard
+                                                    </button>
+                                                </div>
+                                                <h1 className="mt-5 mb-3 small-text">
+                                                    Recently added tracks
+                                                </h1>
+                                                {(!recentData ||
+                                                    recentData.length ===
+                                                        0) && (
+                                                    <p>
+                                                        No recent data. Happy
+                                                        Scribing!
+                                                    </p>
+                                                )}
+                                                {recentData &&
+                                                    recentData.length > 0 &&
+                                                    recentData.map(
+                                                        (song, i) => (
+                                                            <RecentNote
+                                                                key={i}
+                                                                albumCoverURL={
+                                                                    song.album
+                                                                        .images[0]
+                                                                        .url
+                                                                }
+                                                                songTitle={
+                                                                    song.name
+                                                                }
+                                                                artist={
+                                                                    song
+                                                                        .artists[0]
+                                                                        .name
+                                                                }
+                                                            />
+                                                        )
+                                                    )}
+                                            </>
+                                        )}
                                     </div>
                                     <div className="col-md-9 col-8 px-md-5 px-sm-3">
                                         <NoteArea
@@ -1054,7 +1047,7 @@ function App() {
                             localStorage.setItem("access_token", "null");
                             localStorage.setItem("refresh_token", "null");
                             localStorage.setItem("genius_access_token", "null");
-                            localStorage.setItem("show_lyrics", "null");
+                            localStorage.setItem("get_lyrics", false);
                             setLoggedOut(true);
                             let loggedOutModalTriggerButton = $(
                                 "#loggedOutModalTriggerButton"
