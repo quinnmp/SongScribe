@@ -815,7 +815,11 @@ function App() {
                             </label>
                         </div>
                         <div className="row">
-                            <div className={showLyrics ? "col-6" : "col-12"}>
+                            <div
+                                className={
+                                    showLyrics ? "col-md-6 col-12" : "col-12"
+                                }
+                            >
                                 <div className="row">
                                     <div className="col-md-3 col-4 word-wrap">
                                         <AlbumSidebar
@@ -981,6 +985,18 @@ function App() {
                                                         Save scribe to clipboard
                                                     </button>
                                                 </div>
+                                                {isMobile && (
+                                                    <div className="col-6 mt-5">
+                                                        <div
+                                                            dangerouslySetInnerHTML={{
+                                                                __html:
+                                                                    "<p>" +
+                                                                    lyricHTML +
+                                                                    "</p>",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
                                                 <h1 className="mt-5 mb-3 small-text">
                                                     Recently added tracks
                                                 </h1>
@@ -1019,7 +1035,7 @@ function App() {
                                     )}
                                 </div>
                             </div>
-                            {showLyrics && (
+                            {showLyrics && !isMobile && (
                                 <div className="col-6 mt-5">
                                     <div
                                         dangerouslySetInnerHTML={{
