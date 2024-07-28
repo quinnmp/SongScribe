@@ -354,7 +354,7 @@ function App() {
                 });
         }
 
-        const interval = setInterval(() => getPlaybackState(), 1000);
+        const interval = setInterval(() => getPlaybackState(), 500);
 
         // Set up actual page events
         $(document).ready(function () {
