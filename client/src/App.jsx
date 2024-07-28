@@ -811,7 +811,8 @@ function App() {
                                 className="form-check-label"
                                 htmlFor="showLyrics"
                             >
-                                Show Lyrics? [Experimental]
+                                Show Lyrics?{" "}
+                                {isMobile && "(Look below on mobile!)"}{" "}
                             </label>
                         </div>
                         <div className="row">
