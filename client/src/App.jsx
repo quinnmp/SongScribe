@@ -986,7 +986,7 @@ function App() {
                                                         Save scribe to clipboard
                                                     </button>
                                                 </div>
-                                                {isMobile && (
+                                                {isMobile && showLyrics && (
                                                     <div className="col-6 mt-5">
                                                         <div
                                                             dangerouslySetInnerHTML={{
