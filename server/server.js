@@ -723,7 +723,8 @@ app.put("/song-control", async (req, res) => {
     accessToken = req.query.access_token;
 
     data = {
-        uris: ["spotify:track:" + req.query.id],
+        context_uri: req.query.uri,
+        offset: { position: req.query.track_num },
         position_ms: req.query.favorite_part,
     };
     try {

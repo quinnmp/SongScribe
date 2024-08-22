@@ -38,7 +38,8 @@ function AlbumTab(props) {
                                             key={i}
                                             onClick={() =>
                                                 props.playFavoritePart(
-                                                    track.id,
+                                                    props.albumURI,
+                                                    i,
                                                     props.albumReviews[
                                                         props.songsWithData.findIndex(
                                                             (item) =>

@@ -55,6 +55,7 @@ function App() {
     const [loggedOut, setLoggedOut] = useState(false);
     const [errorDismissed, setErrorDismissed] = useState(false);
     const [favorite, setFavorite] = useState(0);
+    const [albumURI, setAlbumURI] = useState("");
 
     // Set up URLs
     const apiUrl =
@@ -210,6 +211,7 @@ function App() {
                                     setTracklist(
                                         data.spotify_album_data.tracks.items
                                     );
+                                    setAlbumURI(data.spotify_album_data.uri);
 
                                     let tempArtists = [];
                                     data.spotify_player_data.item.artists.map(
@@ -773,11 +775,12 @@ function App() {
         });
     }
 
-    function playFavoritePart(id, favorite_part) {
+    function playFavoritePart(uri, track_num, favorite_part) {
         return new Promise((resolve, reject) => {
             const queryParams = new URLSearchParams({
                 access_token: localStorage.getItem("access_token"),
-                id: id,
+                uri: uri,
+                track_num: track_num,
                 favorite_part: favorite_part,
             });
             const requestOptions = {
@@ -1083,6 +1086,7 @@ function App() {
                     <AlbumTab
                         albumCoverURL={albumCoverURL}
                         albumTitle={albumTitle}
+                        albumURI={albumURI}
                         artists={albumArtists}
                         releaseDate={releaseDate}
                         tracklist={tracklist}
