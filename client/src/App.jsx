@@ -50,11 +50,11 @@ function App() {
             ? false
             : "true"
     );
-    console.log(Boolean(localStorage.getItem("get_lyrics")));
     const [processingPlayback, setProcessingPlayback] = useState(false);
     const [newClient, setNewClient] = useState(true);
     const [loggedOut, setLoggedOut] = useState(false);
     const [errorDismissed, setErrorDismissed] = useState(false);
+    const [favorite, setFavorite] = useState(0);
 
     // Set up URLs
     const apiUrl =
@@ -247,6 +247,12 @@ function App() {
                                     if (data.database_data.notes) {
                                         setNotes(data.database_data.notes);
                                     }
+
+                                    setFavorite(
+                                        data.database_data.favorite
+                                            ? data.database_data.favorite
+                                            : 0
+                                    );
 
                                     // If we're on the first disc, use the track number directly
                                     // In any other case, we have to get the track number ourselves
@@ -653,6 +659,7 @@ function App() {
                         id: songID,
                         quickSummary: $("#quick-summary-input").val(),
                         review: $("#review-input").val(),
+                        favorite: favorite,
                         notes: notes,
                         access_token: localStorage.getItem("access_token"),
                     }),
@@ -690,6 +697,7 @@ function App() {
         showLyrics,
         loggedOut,
         errorDismissed,
+        favorite,
     ]);
 
     class Note {
@@ -760,6 +768,31 @@ function App() {
                 resolve(response);
             } catch (error) {
                 console.error("Error controlling playback:", error);
+                reject(error);
+            }
+        });
+    }
+
+    function playFavoritePart(id, favorite_part) {
+        return new Promise((resolve, reject) => {
+            const queryParams = new URLSearchParams({
+                access_token: localStorage.getItem("access_token"),
+                id: id,
+                favorite_part: favorite_part,
+            });
+            const requestOptions = {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ favorite: true }),
+            };
+            try {
+                const response = fetch(
+                    apiUrl + "/song-control?" + queryParams,
+                    requestOptions
+                );
+                resolve(response);
+            } catch (error) {
+                console.error("Error playing favorite part:", error);
                 reject(error);
             }
         });
@@ -1056,6 +1089,7 @@ function App() {
                         songsWithData={songsWithData}
                         albumReviews={albumReviews}
                         isLessThanXL={isLessThanXL}
+                        playFavoritePart={playFavoritePart}
                     />
                     <DisconnectTab
                         onClick={() => {
@@ -1076,7 +1110,10 @@ function App() {
             </div>
             <div className="mt-5 mb-5"></div>
             <Footer />
-            <NoteModal tempTimeStamp={tempTimeStamp} />
+            <NoteModal
+                tempTimeStamp={tempTimeStamp}
+                setFavorite={setFavorite}
+            />
             {notes.map((note, i) => (
                 <EditNoteModal
                     key={i}
@@ -1084,6 +1121,7 @@ function App() {
                     timestamp={note.timestamp}
                     length={note.length}
                     note={note.note}
+                    setFavorite={setFavorite}
                 />
             ))}
             <PlaybackControl

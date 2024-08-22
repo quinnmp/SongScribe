@@ -108,6 +108,25 @@ function NoteModal(props) {
                             </button>
                             <button
                                 type="button"
+                                onClick={() =>
+                                    props.setFavorite(
+                                        $("#timestampInput")
+                                            .val()
+                                            .split(":")[0] *
+                                            60 *
+                                            1000 +
+                                            $("#timestampInput")
+                                                .val()
+                                                .split(":")[1] *
+                                                1000
+                                    )
+                                }
+                                className="btn btn-primary"
+                            >
+                                Favorite
+                            </button>
+                            <button
+                                type="button"
                                 className="btn btn-primary save-note"
                                 data-bs-dismiss="modal"
                             >

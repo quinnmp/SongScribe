@@ -38,6 +38,10 @@ const userScribesSchema = new mongoose.Schema({
                 type: String,
                 set: (v) => xss(v),
             },
+            favorite: {
+                type: Number,
+                default: 0,
+            },
             notes: {
                 type: [
                     {
@@ -630,6 +634,7 @@ app.get("/api", async (req, res) => {
                                         id: song.id,
                                         quick_summary: song.quickSummary,
                                         review: song.review,
+                                        favorite: song.favorite,
                                         notes: song.notes,
                                         review_count: song.notes.length,
                                     });
@@ -713,6 +718,28 @@ app.put("/playback-control", async (req, res) => {
     }
 });
 
+app.put("/song-control", async (req, res) => {
+    console.log("PUT /song-control");
+    accessToken = req.query.access_token;
+
+    data = {
+        uris: ["spotify:track:" + req.query.id],
+        position_ms: req.query.favorite_part,
+    };
+    try {
+        await axios.put(`https://api.spotify.com/v1/me/player/play`, data, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+        });
+        res.send(JSON.stringify({ status: "success" }));
+    } catch (e) {
+        console.log(e.response);
+        res.send(JSON.stringify({ status: "failure" }));
+    }
+});
+
 app.post("/api", async (req, res) => {
     accessToken = req.body.access_token;
     let userID = userIDs[accessToken];
@@ -724,6 +751,7 @@ app.post("/api", async (req, res) => {
             id: xss(req.body.id),
             quickSummary: xss(req.body.quickSummary),
             review: xss(req.body.review),
+            favorite: req.body.favorite,
             notes: Array.isArray(req.body.notes)
                 ? req.body.notes.map((note) => ({
                       timestamp: xss(note.timestamp || ""),
@@ -781,6 +809,7 @@ app.post("/api", async (req, res) => {
                                 song.quickSummary ===
                                     sanitizedData.quickSummary &&
                                 song.review === sanitizedData.review &&
+                                song.favorite === sanitizedData.favorite &&
                                 JSON.stringify(song.notes) ===
                                     JSON.stringify(sanitizedData.notes)
                             ) {
@@ -798,6 +827,7 @@ app.post("/api", async (req, res) => {
                                 );
                                 song.quickSummary = sanitizedData.quickSummary;
                                 song.review = sanitizedData.review;
+                                song.favorite = sanitizedData.favorite;
                                 song.notes = sanitizedData.notes;
                             }
                         }

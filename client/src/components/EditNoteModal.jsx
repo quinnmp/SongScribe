@@ -121,6 +121,25 @@ function EditNoteModal(props) {
                             </button>
                             <button
                                 type="button"
+                                onClick={() =>
+                                    props.setFavorite(
+                                        $("#timestampInput")
+                                            .val()
+                                            .split(":")[0] *
+                                            60 *
+                                            1000 +
+                                            $("#timestampInput")
+                                                .val()
+                                                .split(":")[1] *
+                                                1000
+                                    )
+                                }
+                                className="btn btn-primary"
+                            >
+                                Favorite
+                            </button>
+                            <button
+                                type="button"
                                 id={"edit-note" + props.index}
                                 className="btn btn-primary edit-note"
                                 data-bs-dismiss="modal"

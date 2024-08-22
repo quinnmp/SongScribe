@@ -29,15 +29,47 @@ function AlbumTab(props) {
                     <div key={i}>
                         <hr className="mx-3" />
                         <div className="row">
-                            <div className="col-md-1 col-1 me-2">
-                                <h2 key={i}>{i + 1}.</h2>
+                            <div className="col-lg-1 col-2">
+                                {props.songsWithData.includes(track.id) && (
+                                    <h2>
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            key={i}
+                                            onClick={() =>
+                                                props.playFavoritePart(
+                                                    track.id,
+                                                    props.albumReviews[
+                                                        props.songsWithData.findIndex(
+                                                            (item) =>
+                                                                item == track.id
+                                                        )
+                                                    ].favorite
+                                                )
+                                            }
+                                        >
+                                            <h2
+                                                style={{
+                                                    color: "#163b1e",
+                                                    position: "relative",
+                                                    top: "2px",
+                                                }}
+                                            >
+                                                {i + 1}
+                                            </h2>
+                                        </button>
+                                    </h2>
+                                )}
+                                {!props.songsWithData.includes(track.id) && (
+                                    <h2 key={i}>{i + 1}</h2>
+                                )}
                             </div>
                             <div className="vr"></div>
-                            <div className="col-md-5 col-4 word-wrap">
+                            <div className="col word-wrap d-flex align-items-center justify-content-center">
                                 <h2 key={i}>{track.name}</h2>
                             </div>
                             <div className="vr"></div>
-                            <div className="col-md-5 col-4 word-wrap">
+                            <div className="col-lg-6 col-5 word-wrap">
                                 {props.songsWithData.includes(track.id) && (
                                     <h3 key={i} className="fw-normal">
                                         {
@@ -51,13 +83,13 @@ function AlbumTab(props) {
                                 )}
                             </div>
                             <div className="vr"></div>
-                            <div className="col-md-1 col-2 comment-count d-flex">
+                            <div className="col-lg-1 col-2 pt-1 comment-count d-flex align-items-center justify-content-center">
                                 {props.songsWithData.includes(track.id) && (
                                     <>
                                         <div className="d-md-inline d-inline-block">
                                             {props.isLessThanXL ? (
                                                 <>
-                                                    <div className="row row justify-content-center">
+                                                    <div className="row justify-content-center">
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             width="25"
@@ -73,7 +105,7 @@ function AlbumTab(props) {
                                                     <div className="row justify-content-center">
                                                         <h2
                                                             key={i}
-                                                            className="d-md-inline-block d-inline"
+                                                            className="d-md-inline-block d-inline mb-0"
                                                         >
                                                             {
                                                                 props
