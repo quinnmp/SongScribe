@@ -123,12 +123,12 @@ function EditNoteModal(props) {
                                 type="button"
                                 onClick={() =>
                                     props.setFavorite(
-                                        $("#timestampInput")
+                                        $("#timestampInput" + props.index.toString())
                                             .val()
                                             .split(":")[0] *
                                             60 *
                                             1000 +
-                                            $("#timestampInput")
+                                            $("#timestampInput" + props.index.toString())
                                                 .val()
                                                 .split(":")[1] *
                                                 1000
